@@ -17,6 +17,8 @@ resolvers := {
     previous
 }
 
+lazy val setupTools = taskKey[File]("Location of the imce ontology tools directory extracted from dependencies")
+
 lazy val imce_ontologies_workflow =
   Project("gov-nasa-jpl-imce-ontologies-workflow", file("."))
     .enablePlugins(AetherPlugin)
@@ -26,7 +28,7 @@ lazy val imce_ontologies_workflow =
       projectID := {
         val previous = projectID.value
         previous.extra(
-          "artifact.kind" -> "ontologies")
+          "artifact.kind" -> "workflow")
       },
 
       // disable automatic dependency on the Scala library
@@ -65,29 +67,44 @@ lazy val imce_ontologies_workflow =
 
       managedSources in Compile := Seq(),
 
-      com.typesafe.sbt.packager.Keys.topLevelDirectory in Universal := None,
+      libraryDependencies +=
+        "gov.nasa.jpl.imce"
+        % "gov.nasa.jpl.imce.ontologies.tools"
+        % "0.1.0"
+        artifacts
+        Artifact("gov.nasa.jpl.imce.ontologies.tools", "zip", "zip", "resource"),
 
-      // name the '*-resource.zip' in the same way as other artifacts
-      com.typesafe.sbt.packager.Keys.packageName in Universal :=
-        normalizedName.value + "-" + version.value + "-resource",
+      setupTools := {
 
-      // contents of the '*-resource.zip' to be produced by 'universal:packageBin'
-      mappings in Universal in packageBin ++= {
+        val slog = streams.value.log
 
-        val ontologyFiles =
-          (baseDirectory.value / "ontologies" ***).pair(relativeTo(baseDirectory.value)).sortBy(_._2)
+        val toolsDir = baseDirectory.value / "target" / "tools"
 
-        ontologyFiles
+        if (toolsDir.exists()) {
+          slog.warn(s"IMCE ontology tools already extracted in $toolsDir")
+        }  else {
+          IO.createDirectory(toolsDir)
 
-      },
+          val tfilter: DependencyFilter = new DependencyFilter {
+            def apply(c: String, m: ModuleID, a: Artifact): Boolean =
+              a.extension == "zip" &&
+                m.organization.startsWith("gov.nasa.jpl.imce") &&
+                m.name.startsWith("gov.nasa.jpl.imce.ontologies.tools")
+          }
 
-      artifacts += {
-        val n = (name in Universal).value
-        Artifact(n, "zip", "zip", Some("resource"), Seq(), None, Map())
-      },
-      packagedArtifacts += {
-        val p = (packageBin in Universal).value
-        val n = (name in Universal).value
-        Artifact(n, "zip", "zip", Some("resource"), Seq(), None, Map()) -> p
+          update.value
+            .matching(tfilter)
+            .headOption
+            .fold[Unit] {
+            slog.error("Cannot find the IMCE ontology tools resource zip!")
+          } { zip =>
+            IO.unzip(zip, toolsDir)
+            slog.warn(s"Extracted IMCE ontology tools from $zip")
+            slog.warn(s"IMCE ontology tools in: $toolsDir")
+          }
+
+        }
+
+        toolsDir
       }
     )
