@@ -1,5 +1,7 @@
 
 import java.io.File
+import java.nio.file.Files
+
 import sbt.Keys._
 import sbt._
 
@@ -18,6 +20,8 @@ resolvers := {
 }
 
 lazy val setupTools = taskKey[File]("Location of the imce ontology tools directory extracted from dependencies")
+
+lazy val setupOntologies = taskKey[File]("Location of the imce ontologies, either extracted from dependencies or symlinked")
 
 lazy val imce_ontologies_workflow =
   Project("gov-nasa-jpl-imce-ontologies-workflow", file("."))
@@ -74,6 +78,13 @@ lazy val imce_ontologies_workflow =
         artifacts
         Artifact("gov.nasa.jpl.imce.ontologies.tools", "zip", "zip", "resource"),
 
+      libraryDependencies +=
+        "gov.nasa.jpl.imce"
+          % "gov.nasa.jpl.imce.ontologies.public"
+          % "1.0.1"
+          artifacts
+          Artifact("gov.nasa.jpl.imce.ontologies.public", "zip", "zip", "resource"),
+
       setupTools := {
 
         val slog = streams.value.log
@@ -106,5 +117,50 @@ lazy val imce_ontologies_workflow =
         }
 
         toolsDir
+      },
+
+      setupOntologies := {
+
+        val slog = streams.value.log
+
+        //
+        val ontologiesLink = (baseDirectory.value / "local.ontologies").toPath
+
+        val ontologiesDir = baseDirectory.value / "target" / "ontologies"
+
+        if (ontologiesDir.exists()) {
+          slog.warn(s"IMCE ontology tools already extracted or symlinked in $ontologiesDir")
+        }  else {
+
+          if (Files.isSymbolicLink(ontologiesLink)) {
+            val localOntologies = Files.readSymbolicLink(ontologiesLink)
+            Files.createSymbolicLink(ontologiesDir.toPath, localOntologies.resolve("ontologies"))
+            slog.warn(s"Using 'local.ontologies' link to $localOntologies")
+            slog.warn(s"IMCE ontologies in: $ontologiesDir")
+          } else {
+            IO.createDirectory(ontologiesDir)
+
+            val tfilter: DependencyFilter = new DependencyFilter {
+              def apply(c: String, m: ModuleID, a: Artifact): Boolean =
+                a.extension == "zip" &&
+                  m.organization.startsWith("gov.nasa.jpl.imce") &&
+                  m.name.startsWith("gov.nasa.jpl.imce.ontologies.public")
+            }
+
+            update.value
+              .matching(tfilter)
+              .headOption
+              .fold[Unit] {
+              slog.error("Cannot find the IMCE ontology public resource zip!")
+            } { zip =>
+              IO.unzip(zip, ontologiesDir / "..")
+              slog.warn(s"Extracted IMCE ontology public from $zip")
+              slog.warn(s"IMCE ontologies in: $ontologiesDir")
+            }
+
+          }
+        }
+
+        ontologiesDir
       }
     )

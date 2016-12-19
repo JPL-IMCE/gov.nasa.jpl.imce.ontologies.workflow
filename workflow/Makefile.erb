@@ -1,0 +1,1089 @@
+#
+#    $HeadURL$
+#
+#    $LastChangedRevision$
+#    $LastChangedDate$
+#
+#    $LastChangedBy$
+#
+#    Copyright (c) 2009,2010 California Institute of Technology.
+#    All rights reserved.
+#
+
+tmpfile = $(dir $1).$(notdir $1)
+today := $(shell date +%Y/%m/%d)
+
+BACKBONE_DISJOINTS ?= Entity ReifiedObjectProperty ReifiedStructuredDataProperty StructuredDatatype
+BACKBONE_PREFIX ?= http://imce.jpl.nasa.gov/backbone/
+
+CI_REVISION_NUMBER ?= [unknown]
+CLOSE_BUNDLE ?= $(JRUBY_CMD) $(TOOLS)/tools/close-bundle-jena
+CLOSE_BUNDLE_OPTS ?= 
+CP ?= cp -p
+
+DEPENDENCIES ?= $(JRUBY_CMD) $(TOOLS)/tools/dependencies $(DEPENDENCIES_OPTS)
+DEPENDENCIES_OPTS ?= 
+DEPENDENCIES_FILE ?= .dependencies
+DIRCP ?= cp -Ru
+
+ENTAIL ?= $(JRUBY_CMD) -J-Djava.util.logging.config.file=logging.properties $(TOOLS)/tools/entail-pellet
+ENTAIL_OPTS = 
+
+EXTRACT_JENA ?= $(JRUBY_CMD) $(TOOLS)/tools/extract-jena
+EXTRACT_JENA_OPTS ?= --imports-file $(IMPORTS_GRAPH_FILE) --prefix-file $(PREFIX_FILE)
+
+FORM_IMPORTS_CLOSURE ?= $(JRUBY_CMD) $(TOOLS)/tools/form-imports-closure
+FORM_IMPORTS_CLOSURE_OPTS ?= 
+
+FUSEKI_S_DELETE ?= $(FUSEKI_DIR)/s-delete
+FUSEKI_S_GET ?= $(FUSEKI_DIR)/s-get
+FUSEKI_S_PUT ?= $(FUSEKI_DIR)/s-put
+
+# TODO needs to retrieve the info from the ontologies.public maven artifact or the symlink to the local ontologies dir.
+GET_CM_DATE ?= git log -n 1 --format=%ci
+GET_CM_REVISION ?= git log -n 1 --format=%h
+
+IMCE_LOCAL_CATALOG ?= imce.local.catalog.xml
+IMCE_LOCAL_CATALOG_ARTIFACT ?= artifacts/ontologies/$(IMCE_LOCAL_CATALOG)
+IMPORTS_GRAPH ?= $(JRUBY_CMD) $(TOOLS)/tools/imports-graph-jena
+IMPORTS_GRAPH_OPTS ?= --prefix-file $(PREFIX_FILE)
+IMPORTS_GRAPH_FILE ?= artifacts/imports-graph.yaml
+IMPORTS_PRODUCTION_SENTINEL ?= .production/$(IMPORTS_GRAPH_FILE)
+
+JRUBY ?= jruby
+JRUBY_CMD ?= $(JRUBY) --headless -J-Xmx1024m
+
+LOAD_PREFIXES ?= $(JRUBY_CMD) $(TOOLS)/tools/load-prefixes-jena
+LOAD_PREFIXES_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset $(JENA_DATASET) \
+                      --prefix-file $(PREFIX_FILE)
+LOG4J_CONFIG_FILE ?= 'log4j.properties'
+
+MAKE_CATALOGS ?= $(TOOLS)/tools/make-catalogs
+MAKE_CATALOGS_OPTS ?= 
+MAKE_MAKEFILE ?= $(TOOLS)/tools/make-makefile
+
+ONTOLOGY_DIGEST ?= $(JRUBY_CMD) $(TOOLS)/tools/ontology-digest-jena
+ONTOLOGY_DIGEST_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset $(JENA_DATASET) \
+                        --prefix-file $(PREFIX_FILE) --imports-file $(IMPORTS_GRAPH_FILE) \
+                        --build-key '$(CI_BUILD_KEY)' --build-number '$(CI_BUILD_NUMBER)' --revision-number '$(CI_REVISION_NUMBER)' \
+						--xsltproc '$(XSLTPROC)' --docbook-xhtml-xsl '$(DOCBOOK_XHTML_XSL)' \
+						$(subst .,--,$(ONTOLOGY_DIGEST_EXTENSION))
+ONTOLOGY_DIGEST_EXTENSION ?= <%= ONTOLOGY_DIGEST_EXTENSION = '.json' %>		# .json or .yaml
+ONTOLOGY_BUNDLES_SERIALIZED_FILE = .ontology-bundles-serialized
+ONTOLOGY_GROUPS_SERIALIZED_FILE = .ontology-groups-serialized
+ONTOLOGY_PARTS_SERIALIZED_FILE = .ontology-parts-serialized
+OWL_TEST_FILE = tests/validate-owl.xml
+
+PREFIX_FILE ?= .prefixes.yaml
+PREFIXES_PRODUCTION_SENTINEL ?= .production/$(PREFIX_FILE)
+
+REIFICATION_REFACTORING_AUDIT ?= $(TOOLS)/data/Audit/non-recurring/no-non-derived-object-property-is-reified-by-a-property-chain.rb
+RUBY ?= ruby
+RUBY_CMD ?= $(RUBY)
+RUBYLIB ?= 
+RUN_AUDITS ?= $(JRUBY_CMD) $(TOOLS)/tools/run-audits-jena
+RUN_AUDITS_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset $(JENA_DATASET) \
+                   --prefix-file $(PREFIX_FILE) --imports-file $(IMPORTS_GRAPH_FILE)
+
+UPDATE_METADATA ?= $(JRUBY_CMD) $(TOOLS)/tools/update-metadata
+UPDATE_METADATA_OPTS ?= 
+
+VALIDATE_BUNDLE_TREE_IMCE ?= $(TOOLS)/data/Audit/bundle/imce
+VALIDATE_BUNDLE_TREE_OMG ?= $(TOOLS)/data/Audit/bundle/omg
+VALIDATE_GROUP_TREE_ALL ?= $(TOOLS)/data/Audit/group/all
+VALIDATE_GROUP_TREE_NO_EMBEDDING ?= $(TOOLS)/data/Audit/group/all/no-embedding
+VALIDATE_GROUP_TREE_NO_FULL_REIFICATION ?= $(TOOLS)/data/Audit/group/all/no-embedding/no-full-reification
+VALIDATE_OWL ?= $(JRUBY_CMD) -J-Djava.util.logging.config.file=logging.properties $(TOOLS)/tools/validate-owl
+VALIDATE_OWL_OPTS ?= --satisfiability
+VALIDATE_XML ?= $(TOOLS)/tools/validate-xml
+VALIDATE_XML_OPTS ?= 
+VALIDATION_DEPENDENCIES_FILE ?= .validation-dependencies
+
+XML_TEST_FILE = tests/validate-xml.xml
+XSLTPROC ?= xsltproc
+
+-include $(DEPENDENCIES_FILE)
+-include $(VALIDATION_DEPENDENCIES_FILE)
+
+<%
+
+#
+# W3C ONTOLOGIES
+#
+
+w3_parts = []
+
+w3_parts << OntologyPart.new('www.w3.org/2001', 'XMLSchema', 'xsd')
+w3_parts << OntologyPart.new('www.w3.org/1999/02', '22-rdf-syntax-ns', 'rdf').ontology_artifact_only = true
+w3_parts << OntologyPart.new('www.w3.org/2000/01', 'rdf-schema', 'rdfs').ontology_artifact_only = true
+w3_parts << OntologyPart.new('www.w3.org/2002/07', 'owl').ontology_artifact_only = true
+w3_parts << OntologyPart.new('www.w3.org/2003/g', 'data-view').ontology_artifact_only = true
+w3_parts << OntologyPart.new('www.w3.org/2003/11', 'swrl').ontology_artifact_only = true
+
+#
+# DUBLIN CORE ONTOLOGIES
+#
+
+dc_parts = []
+
+dc_parts << OntologyPart.new('purl.org/dc/elements', '1.1', 'dc', '/').ontology_artifact_only = true
+
+# IMCE OMF ONTOLOGY
+
+omf_parts = []
+
+omf_parts << OntologyPart.new('imce.jpl.nasa.gov/foundation/omf', 'omf').ontology_artifact_only = true
+
+#
+# OMG ONTOLOGIES
+#
+
+# metrology
+
+include_omg_metrology_group = true
+if include_omg_metrology_group
+
+  path = 'imce.jpl.nasa.gov/www.omg.org/spec/SysML/20140311'
+  stem = 'Metrology'
+  omg_metrology_group = OmgOntologyGroup.new(path, stem)
+  omg_metrology_group << OntologyPart.new(path, stem)
+  omg_metrology_group << OntologyMetamodelPart.new(path, stem + METAMODEL_SUFFIX)
+  
+  stem = 'QUDV'
+  omg_metrology_group << OntologyPart.new(path, stem)
+  omg_metrology_group << OntologyMetamodelPart.new(path, stem + METAMODEL_SUFFIX)
+
+  stem = 'SysML'
+  omg_metrology_group << OntologyPart.new(path, stem)
+  omg_metrology_group << OntologyMetamodelPart.new(path, stem + METAMODEL_SUFFIX)
+
+  path = 'imce.jpl.nasa.gov/www.omg.org/spec/UML/20110701'
+  stem = 'StandardProfileL2'
+  omg_metrology_group << OntologyPart.new(path, stem)
+  omg_metrology_group << OntologyMetamodelPart.new(path, stem + METAMODEL_SUFFIX)
+
+  stem = 'UML'
+  omg_metrology_group << OntologyPart.new(path, stem)
+  omg_metrology_group << OntologyMetamodelPart.new(path, stem + METAMODEL_SUFFIX)
+
+  path = 'imce.jpl.nasa.gov/www.omg.org/spec/PrimitiveTypes/20110701'
+  stem = 'PrimitiveTypes'
+  omg_metrology_group << OntologyPart.new(path, stem)
+  omg_metrology_group << OntologyMetamodelPart.new(path, stem + METAMODEL_SUFFIX)
+  
+end
+
+#
+# IMCE FOUNDATION ONTOLOGIES
+#
+
+#
+# Ungrouped Ontologies (no embedding validation)
+#
+
+# annotation
+
+OntologyPart.new('imce.jpl.nasa.gov/foundation/annotation', 'annotation', 'annotation')
+
+#
+# Ontology Groups
+#
+
+#
+# foundation
+#
+
+# owl2-mof2
+
+include_imce_owl2_mof2_group = true
+if include_imce_owl2_mof2_group
+  path = 'imce.jpl.nasa.gov/foundation/owl2-mof2'
+  stem = 'owl2-mof2'
+  imce_owl2_mof2_group = ImceOwl2Mof2OntologyGroup.new(path, stem)
+  imce_owl2_mof2_group << OntologyPart.new(path, stem)
+  imce_owl2_mof2_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+# base
+
+include_imce_base_group = true
+if include_imce_base_group
+  path = 'imce.jpl.nasa.gov/foundation/base'
+  stem = 'base'
+  imce_base_group = ImceOntologyGroup.new(path, stem)
+  imce_base_group.depends_on(omg_metrology_group)
+  imce_base_group << OntologyPart.new(path, stem)
+  imce_base_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+# time
+
+include_imce_time_group = false
+if include_imce_time_group && include_imce_base_group
+  path = 'imce.jpl.nasa.gov/foundation/time'
+  stem = 'time'
+  imce_time_group = ImceOntologyGroup.new(path, stem)
+  imce_time_group.depends_on(imce_base_group)
+  imce_time_group << OntologyPart.new(path, stem)
+  imce_time_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+# mission
+
+include_imce_mission_group = true
+if include_imce_mission_group && include_imce_base_group
+  path = 'imce.jpl.nasa.gov/foundation/mission'
+  stem = 'mission'
+  imce_mission_group = ImceOntologyGroup.new(path, stem)
+  imce_mission_group.depends_on(imce_base_group)
+  imce_mission_group << OntologyPart.new(path, stem)
+  imce_mission_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+# analysis
+
+include_imce_analysis_group = true
+if include_imce_analysis_group && include_imce_mission_group
+  path = 'imce.jpl.nasa.gov/foundation/analysis'
+  stem = 'analysis'
+  imce_analysis_group = ImceOntologyGroup.new(path, stem)
+  imce_analysis_group.depends_on(imce_mission_group)
+  imce_analysis_group << OntologyPart.new(path, stem)
+  imce_analysis_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+# behavior
+
+include_imce_behavior_group = true
+if include_imce_behavior_group && include_imce_analysis_group
+  path = 'imce.jpl.nasa.gov/foundation/behavior'
+  stem = 'behavior'
+  imce_behavior_group = ImceOntologyGroup.new(path, stem)
+  imce_behavior_group.depends_on(imce_analysis_group)
+  imce_behavior_group << OntologyPart.new(path, stem)
+  #imce_behavior_group << OntologyViewPart.new(path, stem + VIEW_SUFFIX)
+  imce_behavior_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+# project
+
+include_imce_project_group = true
+if include_imce_project_group && include_imce_analysis_group
+  path = 'imce.jpl.nasa.gov/foundation/project'
+  stem = 'project'
+  imce_project_group = ImceOntologyGroup.new(path, stem)
+  imce_project_group.depends_on(imce_analysis_group)
+  imce_project_group << OntologyPart.new(path, stem)
+  imce_project_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+#
+# discipline
+#
+
+# fault management
+
+include_imce_fault_management_group = true
+if include_imce_fault_management_group && include_imce_behavior_group
+  path = 'imce.jpl.nasa.gov/discipline/fault-management'
+  stem = 'fault-management'
+  imce_fault_management_group = ImceOntologyGroup.new(path, stem)
+  imce_fault_management_group.depends_on(imce_behavior_group)
+  imce_fault_management_group << OntologyPart.new(path, stem)
+  imce_fault_management_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+# verification and validation
+
+include_imce_vandv_group = true
+if include_imce_vandv_group && include_imce_project_group
+  path = 'imce.jpl.nasa.gov/discipline/vandv'
+  stem = 'vandv'
+  imce_vandv_group = ImceOntologyGroup.new(path, stem)
+  imce_vandv_group.depends_on(imce_project_group)
+  imce_vandv_group << OntologyPart.new(path, stem)
+  imce_vandv_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+# state analysis
+
+include_imce_state_analysis_group = true
+if include_imce_state_analysis_group && include_imce_project_group
+  path = 'imce.jpl.nasa.gov/discipline/state-analysis'
+  stem = 'state-analysis'
+  imce_state_analysis_group = ImceOntologyGroup.new(path, stem)
+  imce_state_analysis_group.depends_on(imce_project_group)
+  imce_state_analysis_group << OntologyPart.new(path, stem)
+  imce_state_analysis_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+# risk
+
+include_imce_risk_group = true
+if include_imce_risk_group && include_imce_project_group
+  path = 'imce.jpl.nasa.gov/discipline/risk'
+  stem = 'risk'
+  imce_risk_group = ImceOntologyGroup.new(path, stem)
+  imce_risk_group.depends_on(imce_project_group)
+  imce_risk_group << OntologyPart.new(path, stem)
+  imce_risk_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+# mechanical
+
+include_imce_mechanical_group = true
+if include_imce_mechanical_group && include_imce_project_group
+  path = 'imce.jpl.nasa.gov/discipline/mechanical'
+  stem = 'mechanical'
+  imce_mechanical_group = ImceOntologyGroup.new(path, stem)
+  imce_mechanical_group.depends_on(imce_project_group)
+  imce_mechanical_group << OntologyPart.new(path, stem)
+  imce_mechanical_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+#
+# application
+#
+
+# mars-2020
+
+include_imce_mars_2020_group = true
+if include_imce_mars_2020_group && include_imce_analysis_group
+  path = 'imce.jpl.nasa.gov/application/mars-2020'
+  stem = 'mars-2020'
+  imce_mars_2020_group = ImceOntologyGroup.new(path, stem)
+  imce_mars_2020_group.depends_on(imce_analysis_group)
+  imce_mars_2020_group << OntologyPart.new(path, stem)
+  imce_mars_2020_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+#
+# inactive
+#
+
+include_imce_architecture_framework_group = false
+if include_imce_architecture_framework_group && include_imce_project_group
+  path = 'imce.jpl.nasa.gov/inactive/architecture-framework'
+  stem = 'architecture-framework'
+  imce_architecture_framework_group = ImceOntologyGroup.new(path, stem)
+  imce_architecture_framework_group.depends_on(imce_project_group)
+  imce_architecture_framework_group << OntologyPart.new(path, stem)
+  imce_architecture_framework_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+#
+# ONTOLOGY_BUNDLES
+#
+
+# omg metrology
+
+include_omg_metrology_bundle = true
+if include_omg_metrology_bundle
+  omg_metrology_bundle = OmgOntologyBundle.new('imce.jpl.nasa.gov/www.omg.org/spec/SysML/20140311', 'Metrology', 'Metrology', ONTOLOGY_DIGEST_EXTENSION)
+  omg_metrology_bundle.owl2_mof2_group = imce_owl2_mof2_group
+  groups = [ omg_metrology_group ]
+  groups.each do |group|
+    omg_metrology_bundle.bundles(group)
+  end
+end
+
+# imce project
+
+include_imce_project_bundle = true
+imce_project_bundle_groups = [
+	imce_base_group,
+	imce_mission_group,
+	imce_analysis_group,
+	imce_project_group,
+	imce_behavior_group,
+	imce_fault_management_group,
+	imce_state_analysis_group,
+	imce_vandv_group,
+	imce_risk_group,
+	imce_mechanical_group ]
+if include_imce_project_bundle
+  imce_project_bundle = ImceOntologyBundle.new('imce.jpl.nasa.gov/foundation/project', 'project', 'project', ONTOLOGY_DIGEST_EXTENSION)
+  imce_project_bundle.owl2_mof2_group = imce_owl2_mof2_group
+  imce_project_bundle_groups.each do |group|
+    imce_project_bundle.bundles(group)
+  end
+  imce_project_bundle.imports(omg_metrology_bundle)
+end
+
+# imce mars 2020
+
+include_imce_mars_2020_bundle = true
+imce_mars_2020_bundle_groups = imce_project_bundle_groups + [ imce_mars_2020_group ]
+if include_imce_mars_2020_bundle
+  imce_mars_2020_bundle = ImceOntologyBundle.new('imce.jpl.nasa.gov/application/mars-2020', 'mars-2020', 'mars-2020', ONTOLOGY_DIGEST_EXTENSION)
+  imce_mars_2020_bundle.owl2_mof2_group = imce_owl2_mof2_group
+  imce_mars_2020_bundle_groups.each do |group|
+    imce_mars_2020_bundle.bundles(group)
+  end
+  imce_mars_2020_bundle.imports(omg_metrology_bundle)
+end
+
+#
+# ENTAILMENTS
+#
+
+ENTAILMENTS = {
+  'ClassEntailments' => %w{ AllSubclass },
+  'PropertyEntailments' => %w{ InverseProperty AllSubproperty }
+}
+
+%>
+
+#
+# Save namespace prefixes.
+#
+
+<%
+  File.open(OntologyBundles.prefix_file, 'w') { |f| f.write(OntologyBundles.namespace_map.to_yaml) }
+%>
+
+#
+# Build OWL API location map file.
+#
+
+<%
+  File.open(OntologyPart.location_mapping_file, 'w') do |f|
+    y = [OntologyBundle, OntologyPart].inject({}) do |m, o|
+      m.merge!(o.location_mapping)
+      m
+    end.to_yaml
+    f.write(y)
+  end
+%>
+
+#
+# Serialize data structures for generating dependencies.
+#
+
+<%
+  File.open(OntologyPart.serialization_file, 'wb') { |f| f.write(OntologyPart.serialize) }
+  File.open(OntologyGroup.serialization_file, 'wb') { |f| f.write(OntologyGroup.serialize) }
+  File.open(OntologyBundle.serialization_file, 'wb') { |f| f.write(OntologyBundle.serialize) }
+%>
+
+ENTAILMENT_TYPES_SERIALIZED = <%= ENTAILMENTS.keys.join(',') %>
+
+#
+#
+# PRELIMINARY TARGETS
+#
+#
+
+#
+# dependencies
+#
+
+define do_dependencies
+  @echo dependencies '->' $(1)
+  @$(DEPENDENCIES) $(DEPENDENCIES_OPTS) \
+  	--parts <%= OntologyPart.serialization_file %> \
+    --groups <%= OntologyGroup.serialization_file %> \
+    --bundles <%= OntologyBundle.serialization_file %> \
+    --types '$(ENTAILMENT_TYPES_SERIALIZED)' \
+    --imports-file $(IMPORTS_GRAPH_FILE) $(2) \
+    > $(call tmpfile,$(1)) && mv $(call tmpfile,$(1)) $(1)
+endef
+
+.PHONY:	dependencies
+
+dependencies:	$(IMPORTS_GRAPH_FILE)
+	$(call do_dependencies,$(DEPENDENCIES_FILE))
+
+.PHONY:	validation-dependencies
+
+validation-dependencies:	dependencies
+	$(call do_dependencies,$(VALIDATION_DEPENDENCIES_FILE),--validation)
+
+#
+# imports-graph
+#
+
+.PHONY:	imports-graph
+
+imports-graph: $(IMPORTS_GRAPH_FILE)
+
+define do_imports_graph
+  @echo imports graph
+  @mkdir -p $(dir $@)
+  @$(IMPORTS_GRAPH) $(IMPORTS_GRAPH_OPTS) \
+  	--bundles <%= OntologyBundle.serialization_file %> \
+  	--parts <%= OntologyPart.serialization_file %> \
+  	$(1) > $(call tmpfile,$@) && \
+    (( test -f $@ && cmp -s $@ $(call tmpfile,$@) ) || mv $(call tmpfile,$@) $@)
+endef
+
+<%=
+  rule = Rule.new('$(IMPORTS_GRAPH_FILE)')
+  parts = OntologyPart.list.reject { |p| p.ontology_artifact_only? }
+  rule.prereqs += parts.map { |v| v.file }
+  args = parts.map { |v| v.iri }.join(' ')
+  rule.cmds << "$(call do_imports_graph,#{args})"
+  rule
+%>
+
+#
+#
+# ONTOLOGY PART TARGETS
+#
+#
+
+load-production:	load-ontologies-production
+
+.PHONY: load-ontologies-production
+
+<%=
+  rule = Rule.new('load-ontologies-production')
+  rule.prereqs += OntologyPart.ontology_production_sentinels
+  rule
+%>
+
+<%=
+  rules = OntologyPart.list.inject('') do |memo, part|
+    if target = part.ontology_production_sentinel
+      rule = Rule.new(target)
+      rule.prereqs << part.ontology_artifact
+      rule.cmds << "$(call do_load,$(JENA_HOST),$(JENA_DATASET),$(JENA_PORT),#{part.iri},#{part.ontology_artifact})"
+      memo << rule.to_s
+    end
+    memo
+  end
+%>
+
+load-production:	load-entailments-production
+
+.PHONY: load-entailments-production
+
+<%=
+  rule = Rule.new('load-entailments-production')
+  ENTAILMENTS.keys.each do |type|
+    rule.prereqs += OntologyGroup.entailments_production_sentinels(type)
+  end
+  rule
+%>
+
+<%=
+  OntologyPart.list.inject('') do |memo, part|
+    ENTAILMENTS.keys.each do |type|
+      rule = Rule.new(part.entailments_production_sentinel(type))
+      rule.prereqs << part.entailments_artifact(type)
+      rule.cmds << "$(call do_load,$(JENA_HOST),$(JENA_DATASET),$(JENA_PORT),#{part.entailments_iri(type)},#{part.entailments_artifact(type)})"
+      memo << rule.to_s
+    end
+    memo
+  end
+%>
+
+#
+# entailments
+#
+
+define do_entailments
+  @echo entail '->' $@
+  @mkdir -p $(dir $@)
+  @$(ENTAIL) $(ENTAIL_OPTS) --input-iri $(1) --output-iri $(2) --types $(3) $(4) $^ > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
+endef
+
+<%=
+  OntologyPart.list.inject('') do |memo, part|
+    unless part.ontology_artifact_only?
+      ENTAILMENTS.each do |type, data|
+	    rule = Rule.new(part.entailments_artifact(type))
+	    rule.cmds << %Q{$(call do_entailments,#{part.iri},#{part.entailments_iri(type)},"#{data.join(' ')}")}
+	    memo << rule.to_s
+	  end
+	end
+    memo
+  end
+%>
+
+#
+# validate-xml
+#
+
+.PHONY: validate-xml
+
+define do_validate_xml
+  @echo validate xml
+  @mkdir -p $(dir $@)
+  @$(RUBY_CMD) $(VALIDATE_XML) $(VALIDATE_XML_OPTS) $^ > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
+endef
+
+<%=
+  rule = Rule.new('validate-xml')
+  rule.prereqs << '$(XML_TEST_FILE)'
+  rule
+%>
+
+<%=
+  rule = Rule.new('$(XML_TEST_FILE)')
+  rule.prereqs += OntologyPart.files
+  rule.cmds << "$(call do_validate_xml)"
+  rule
+%>
+
+#
+# ontology-artifacts
+#
+
+.PHONY:	ontology-artifacts
+
+define do_copy_ontology_artifact
+  @echo ontology artifact '->' $@
+  @mkdir -p $(dir $@)
+  @$(CP) $< $@
+endef
+
+define do_update_ontology_artifact
+  @echo ontology artifact '->' $@
+  @mkdir -p $(dir $@)
+  @$(UPDATE_METADATA) $(UPDATE_METADATA_OPTS) $(2) \
+    --date "`$(GET_CM_DATE) $<`" \
+    --revision "`$(GET_CM_REVISION) $<`" $(1) \
+    > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
+  @for i in $$(find $(dir $<) -mindepth 1 -maxdepth 1 -type d ! -name '.*'); do $(DIRCP) $$i $(dir $@); true; done
+endef
+
+<%=
+  rule = Rule.new('ontology-artifacts')
+  rule.prereqs += OntologyPart.ontology_artifacts
+  rule
+%>
+
+<%=
+  OntologyPart.list.inject('') do |memo, part|
+    rule = Rule.new(part.ontology_artifact)
+    rule.prereqs << part.file
+    if part.ontology_artifact_only?
+      rule.cmds << '$(call do_copy_ontology_artifact)'
+    else
+      option = part.is_embedding? ? '--embedding' : part.is_view? ? '--view' : part.is_metamodel? ? '--metamodel' : ''
+	  rule.cmds << "$(call do_update_ontology_artifact,#{part.iri},#{option})"
+	end
+    memo << rule.to_s
+    memo
+  end
+%>
+
+#
+# entailments
+#
+
+.PHONY: entailments-artifacts
+
+<%=
+  rule = Rule.new('entailments-artifacts')
+  ENTAILMENTS.keys.each do |type|
+    rule.prereqs += OntologyGroup.entailments_artifacts(type)
+  end
+  rule
+%>
+
+#
+#
+# ONTOLOGY GROUP TARGETS
+#
+#
+
+#
+# validate-groups
+#
+
+.PHONY: validate-groups
+
+define do_validate_group
+  @echo validate group '->' $@
+  @mkdir -p $(dir $@)
+  @$(RUN_AUDITS) $(RUN_AUDITS_OPTS) $(1) $(2) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
+endef
+
+<%=
+  rule = Rule.new('validate-groups')
+  rule.prereqs += OntologyGroup.validation_files
+  rule
+%>
+
+<%=
+  OntologyGroup.list.inject('') do |memo, group|
+    rule = Rule.new(group.validation_file)
+    tree = group.do_embedding? ? '$(VALIDATE_GROUP_TREE_ALL)' :
+      group.full_reification? ? '$(VALIDATE_GROUP_TREE_NO_EMBEDDING)' :
+        '$(VALIDATE_GROUP_TREE_NO_FULL_REIFICATION)' 
+    args = "--audit-tree #{tree}"
+    args << " --audit-option do_embedding=true" if group.do_embedding?
+    iri_args = group.parts.map { |part| part.iri }.join(' ')
+    rule.cmds << "$(call do_validate_group,#{args},#{iri_args})"
+    memo << rule.to_s
+	memo
+  end
+%>
+
+#
+# reification-refactoring-audit
+#
+
+.PHONY: reification-refactoring-audit
+
+define do_reification_refactoring_audit
+  @echo reification refactoring audit '->' $@
+  @mkdir -p $(dir $@)
+  @$(RUN_AUDITS) $(RUN_AUDITS_OPTS) $(1) $(2) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
+endef
+
+<%=
+  rule = Rule.new('reification-refactoring-audit')
+  rule.prereqs += OntologyGroup.validation_files.map { |f| f.sub(/group/, 'reification') }
+  rule
+%>
+
+<%=
+  OntologyGroup.list.inject('') do |memo, group|
+    rule = Rule.new(group.validation_file.sub(/group/, 'reification'))
+    args = "--audit-file $(REIFICATION_REFACTORING_AUDIT)"
+    iri_args = group.parts.map { |part| part.iri }.join(' ')
+    rule.cmds << "$(call do_reification_refactoring_audit,#{args},#{iri_args})"
+    memo << rule.to_s
+	memo
+  end
+%>
+
+#
+#
+# ONTOLOGY BUNDLE TARGETS
+#
+#
+
+load-production:	load-closures-production
+
+<%=
+  rule = Rule.new('load-closures-production')
+  OntologyBundle.list.each do |bundle|
+    rule.prereqs += OntologyBundle.closure_production_sentinels
+    rule.prereqs += OntologyBundle.closure_embedding_production_sentinels
+  end
+  rule
+%>
+
+<%=
+  OntologyBundle.list.inject('') do |memo, bundle|
+    rule = Rule.new(bundle.closure_production_sentinel)
+    rule.prereqs << bundle.artifact
+    rule.cmds << "$(call do_load,$(JENA_HOST),$(JENA_DATASET),$(JENA_PORT),#{bundle.iri},#{bundle.artifact})"
+    memo << rule.to_s
+  end
+%>
+
+<%=
+  OntologyBundle.list.select { |b| b.type == 'imce' }.inject('') do |memo, bundle|
+    rule = Rule.new(bundle.closure_embedding_production_sentinel)
+    rule.prereqs << bundle.embedding_artifact
+    rule.cmds << "$(call do_load,$(JENA_HOST),$(JENA_DATASET),$(JENA_PORT),#{bundle.embedding_iri},#{bundle.embedding_artifact})"
+    memo << rule.to_s
+  end
+%>
+
+#
+# validate-owl
+#
+
+.PHONY: validate-owl
+
+define do_validate_owl
+  @echo validate owl '->' $@
+  @mkdir -p $(dir $@)
+  @$(VALIDATE_OWL) $(VALIDATE_OWL_OPTS) --id $(1) $(1) > $@
+endef
+
+<%=
+  rule = Rule.new('validate-owl')
+  rule.prereqs += OntologyBundle.owl_validation_files
+  rule.prereqs += OntologyBundle.owl_embedding_validation_files
+  rule
+%>
+
+<%=
+  OntologyBundle.list.inject('') do |memo, bundle|
+	rule = Rule.new(bundle.owl_validation_file)
+	rule.prereqs << bundle.artifact
+	rule.cmds << "$(call do_validate_owl,#{bundle.iri})"
+	memo << rule.to_s
+    memo
+  end
+%>
+
+<%=
+  OntologyBundle.list.select { |b| b.type == 'imce' }.inject('') do |memo, bundle|
+	rule = Rule.new(bundle.owl_embedding_validation_file)
+	rule.prereqs << bundle.embedding_artifact
+	rule.cmds << "$(call do_validate_owl,#{bundle.embedding_iri})"
+	memo << rule.to_s
+    memo
+  end
+%>
+
+#
+# validate-bundles
+#
+
+.PHONY: validate-bundles
+
+define do_validate_bundle
+  @echo validate bundle '->' $@
+  @mkdir -p $(dir $@)
+  @$(RUN_AUDITS) $(RUN_AUDITS_OPTS) $(1) $(2) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
+endef
+
+<%=
+  rule = Rule.new('validate-bundles')
+  rule.prereqs += OntologyBundle.validation_files + OntologyBundle.embedding_validation_files
+  rule
+%>
+
+<%=
+  OntologyBundle.list.inject('') do |memo, bundle|
+    rule = Rule.new(bundle.validation_file)
+    case bundle
+    when ImceOntologyBundle
+      tree = '$(VALIDATE_BUNDLE_TREE_IMCE)'
+    when OmgOntologyBundle
+      tree = '$(VALIDATE_BUNDLE_TREE_OMG)'
+	end
+    args = "--audit-tree #{tree}"
+    rule.cmds << "$(call do_validate_bundle,#{args},#{bundle.iri})"
+    memo << rule.to_s
+    
+    if bundle.type == 'imce'
+      rule = Rule.new(bundle.embedding_validation_file)
+	  rule.cmds << "$(call do_validate_bundle,#{args},#{bundle.embedding_iri})"
+	  memo << rule.to_s
+    end
+    
+	memo
+  end
+%>
+
+#
+# digests
+#
+
+.PHONY: digests
+
+define do_digest
+  @echo digest $@
+  @mkdir -p $(dir $@)
+  @$(ONTOLOGY_DIGEST) $(ONTOLOGY_DIGEST_OPTS) --name $(1) --uri $(2) --type $(3) $(4) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
+endef
+
+<%=
+  rule = Rule.new('digests')
+  rule.prereqs += OntologyBundle.digest_files
+  rule
+%>
+
+<%=
+  OntologyBundle.list.inject('') do |memo, bundle|
+    rule = Rule.new(bundle.digest_file)
+    rule.prereqs += (bundle.imported_bundles_closure.dup << bundle).inject([]) do |m, b|
+      m << b.closure_production_sentinel
+      m << b.closure_embedding_production_sentinel if b.type == 'imce'
+      m
+    end
+    iri_args = bundle.groups.inject([]) do |m, group|
+      m += group.parts.map { |part| part.iri }
+      m
+    end
+    rule.cmds << "$(call do_digest,#{bundle.stem},#{bundle.iri},#{bundle.type},#{iri_args.join(' ')})"
+    memo << rule.to_s
+    memo
+  end
+%>
+
+.PHONY:	closure-artifacts
+
+define do_closure
+  @echo closure artifact '->' $@
+  @mkdir -p $(dir $@)
+  @$(CLOSE_BUNDLE) $(CLOSE_BUNDLE_OPTS) \
+    --bundles <%= OntologyBundle.serialization_file %> \
+    --name $(1) --uri $(2) --type $(3) --backbone-disjoints "$(BACKBONE_DISJOINTS)" \
+    --backbone-prefix $(BACKBONE_PREFIX) \
+    $(4) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
+endef
+
+<%=
+  rule = Rule.new('closure-artifacts')
+  rule.prereqs += OntologyBundle.artifacts
+  rule.prereqs += OntologyBundle.embedding_artifacts
+  rule
+%>
+
+<%=
+  OntologyBundle.list.inject('') do |memo, bundle|
+    rule = Rule.new(bundle.artifact)
+    iri_args = []
+    bundle.groups.each do |group|
+      iri_args += group.non_embedding_parts.map { |part| part.iri } # no embedding axioms used in queries
+    end
+    bundle.imported_bundles.each do |ib|
+      iri_args << ib.iri unless ib.type == 'omg'
+    end
+    rule.cmds << "$(call do_closure,#{bundle.name},#{bundle.iri},#{bundle.type},#{iri_args.join(' ')})"
+    memo << rule.to_s
+    memo
+  end
+%>
+
+<%=
+  OntologyBundle.list.select { |o| o.type == 'imce' }.inject('') do |memo, bundle|
+    rule = Rule.new(bundle.embedding_artifact)
+    iri_args = []
+    bundle.groups.each do |group|
+      iri_args += group.parts.map { |part| part.iri }
+    end
+    iri_args << bundle.iri
+    bundle.imported_bundles.each do |ib|
+      iri_args << (ib.type == 'imce' ? ib.embedding_iri : ib.iri)
+    end
+    rule.cmds << "$(call do_closure,#{bundle.name},#{bundle.embedding_iri},#{bundle.type},#{iri_args.join(' ')})"
+    memo << rule.to_s
+    memo
+  end
+%>
+
+#
+#
+# GLOBAL TARGETS
+#
+#
+
+#
+# utility function for loading jena fuseki
+#
+
+define do_load
+  @echo load $(5) '->' $(2) $(4)
+  @mkdir -p $(dir $@)
+  @$(RUBY) $(FUSEKI_S_PUT) 'http://$(1):$(3)/$(2)/data' '$(4)' '$(5)' && touch $@
+endef
+
+#
+# load-production
+#
+
+.PHONY: load-production
+
+load-production:	load-prefixes
+
+.PHONY: load-prefixes
+
+load-prefixes: $(PREFIXES_PRODUCTION_SENTINEL)
+
+$(PREFIXES_PRODUCTION_SENTINEL): $(PREFIX_FILE)
+	@echo load prefixes
+	@mkdir -p $(dir $@)
+	@$(LOAD_PREFIXES) $(LOAD_PREFIXES_OPTS) && touch $@
+
+#
+# artifacts
+#
+
+.PHONY:	artifacts
+
+artifacts:	digests ontology-artifacts entailments-artifacts closure-artifacts imce-local-catalog imports-graph
+
+#
+# imce-local-catalog
+#
+
+.PHONY: imce-local-catalog
+
+define do_local_catalog_artifact
+  @echo ontology artifact '->' $@
+  @mkdir -p $(dir $@)
+  @cp $< $@
+endef
+
+imce-local-catalog:	$(IMCE_LOCAL_CATALOG_ARTIFACT)
+
+$(IMCE_LOCAL_CATALOG_ARTIFACT):	$(IMCE_LOCAL_CATALOG)
+	$(call do_local_catalog_artifact)
+	
+#
+# clear-repos
+#
+
+.PHONY: clear-repos
+
+define do_clear_repo
+  @echo clear repo $(2) $(4)
+  @$(RUBY) $(FUSEKI_S_DELETE) 'http://$(1):$(3)/$(2)/data' '$(4)' > /dev/null 2>&1 || true
+endef
+
+<%=
+  rule = Rule.new('clear-repos')
+  iris = OntologyPart.list.inject(Set.new) do |m, p|
+    m << p.iri
+    m += ENTAILMENTS.keys.map { |e| p.entailments_iri(e) }
+    m
+  end
+  iris += OntologyBundle.list.map { |b| b.iri }
+  iris << 'default'
+  iris.each do |iri|
+    rule.cmds << %Q{$(call do_clear_repo,$(JENA_HOST),$(JENA_DATASET),$(JENA_PORT),#{iri})}
+  end
+  rule.cmds << "@rm -rf #{PRODUCTION_PREFIX}"
+  rule
+%>
+
+#
+# catalogs
+#
+
+.PHONY: catalogs
+
+define do_catalogs
+  @echo make catalogs
+  @$(RUBY) $(MAKE_CATALOGS) $(MAKE_CATALOGS_OPTS) $(1)
+endef
+
+<%=
+  rule = Rule.new('catalogs')
+  rule.cmds << "$(call do_catalogs,#{(OntologyPart.paths + OntologyBundle.paths).join(' ')})"
+  rule
+%>
+
+#
+# Makefile
+#
+
+Makefile: Makefile.erb
+	@echo $< '->' $@
+	@$(JRUBY_CMD) $(MAKE_MAKEFILE) $< > .$@ && mv .$@ $@
+
+#
+# clean
+#
+
+.PHONY:	clean
+
+clean:
+	@echo clean ontology bundle files
+	@rm -f <%= OntologyBundle.clean %>
+	
+	@echo clean ontology group files
+	@rm -f <%= OntologyGroup.clean %>
+	
+	@echo clean ontology part files
+	@rm -f <%= OntologyPart.clean %>
+	
+	@rm -rf <%= ARTIFACTS_PREFIX %>
+	@rm -rf <%= PRODUCTION_PREFIX %>
+	@rm -rf <%= TESTS_PREFIX %>
+	
+	@echo clean other files
+	@rm -f $(IMPORTS_GRAPH_FILE) $(DEPENDENCIES_FILE) $(XML_TEST_FILE) $(OWL_TEST_FILE)
+	@rm -f $(VALIDATION_DEPENDENCIES_FILE) $(IMCE_LOCAL_CATALOG_ARTIFACT)
