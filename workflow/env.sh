@@ -1,9 +1,15 @@
 #!/bin/bash
 
+# Read-only
 export WORKFLOW_SOURCES=$(dirname $(pwd))/workflow
 
+# Read-only
+export ONTOLOGIES=$(dirname $(pwd))/target/ontologies
+
+# Read-only
 export TOOLS=$(dirname $(pwd))/target/tools
 
+# Read/write
 export WORKFLOW=$(dirname $(pwd))/target/workflow
 
 [ ! -d $WORKFLOW ] && mkdir $WORKFLOW

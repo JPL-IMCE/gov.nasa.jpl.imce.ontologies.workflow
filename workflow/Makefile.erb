@@ -43,7 +43,7 @@ FUSEKI_S_PUT ?= $(FUSEKI_DIR)/s-put
 GET_CM_DATE ?= git log -n 1 --format=%ci
 GET_CM_REVISION ?= git log -n 1 --format=%h
 
-IMCE_LOCAL_CATALOG ?= imce.local.catalog.xml
+IMCE_LOCAL_CATALOG ?= $(ONTOLOGIES)/imce.local.catalog.xml
 IMCE_LOCAL_CATALOG_ARTIFACT ?= artifacts/ontologies/$(IMCE_LOCAL_CATALOG)
 IMPORTS_GRAPH ?= $(JRUBY_CMD) $(TOOLS)/tools/imports-graph-jena
 IMPORTS_GRAPH_OPTS ?= --prefix-file $(PREFIX_FILE)
@@ -347,7 +347,7 @@ end
 
 # mars-2020
 
-include_imce_mars_2020_group = true
+include_imce_mars_2020_group = false
 if include_imce_mars_2020_group && include_imce_analysis_group
   path = 'imce.jpl.nasa.gov/application/mars-2020'
   stem = 'mars-2020'
@@ -412,7 +412,8 @@ end
 
 # imce mars 2020
 
-include_imce_mars_2020_bundle = true
+include_imce_mars_2020_bundle = false
+
 imce_mars_2020_bundle_groups = imce_project_bundle_groups + [ imce_mars_2020_group ]
 if include_imce_mars_2020_bundle
   imce_mars_2020_bundle = ImceOntologyBundle.new('imce.jpl.nasa.gov/application/mars-2020', 'mars-2020', 'mars-2020', ONTOLOGY_DIGEST_EXTENSION)
@@ -520,7 +521,7 @@ endef
 <%=
   rule = Rule.new('$(IMPORTS_GRAPH_FILE)')
   parts = OntologyPart.list.reject { |p| p.ontology_artifact_only? }
-  rule.prereqs += parts.map { |v| v.file }
+  rule.prereqs += parts.map { |v| "$(ONTOLOGIES)/"+v.file }
   args = parts.map { |v| v.iri }.join(' ')
   rule.cmds << "$(call do_imports_graph,#{args})"
   rule
@@ -657,7 +658,7 @@ endef
 <%=
   OntologyPart.list.inject('') do |memo, part|
     rule = Rule.new(part.ontology_artifact)
-    rule.prereqs << part.file
+    rule.prereqs << "$(ONTOLOGIES)/"+part.file
     if part.ontology_artifact_only?
       rule.cmds << '$(call do_copy_ontology_artifact)'
     else

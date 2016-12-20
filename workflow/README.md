@@ -28,3 +28,14 @@ cd workflow
 . env.sh
 make loadprod
 ```
+
+# TODO:
+
+[Makefile.erb](Makefile.erb) needs to be updated.
+Currently, the paths to the ontologies are relative paths.
+This worked when the current directory was the ontologies/ folder.
+
+1) The ontologies should be read from an absolute path: `$(ONTOLOGIES)` (see [env.sh](env.sh))
+
+2) The ontologies folder, `$(ONTOLOGIES)`, should be treated as read-only. Derived artifacts should go
+in the `$(WORKFLOW)` directory somewhere (see [env.sh](env.sh))

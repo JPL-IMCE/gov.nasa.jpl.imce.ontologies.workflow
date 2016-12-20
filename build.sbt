@@ -74,7 +74,7 @@ lazy val imce_ontologies_workflow =
       libraryDependencies +=
         "gov.nasa.jpl.imce"
         % "gov.nasa.jpl.imce.ontologies.tools"
-        % "0.1.0"
+        % "0.2.0"
         artifacts
         Artifact("gov.nasa.jpl.imce.ontologies.tools", "zip", "zip", "resource"),
 
