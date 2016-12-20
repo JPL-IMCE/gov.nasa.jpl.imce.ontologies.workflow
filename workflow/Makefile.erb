@@ -482,9 +482,9 @@ ENTAILMENT_TYPES_SERIALIZED = <%= ENTAILMENTS.keys.join(',') %>
 define do_dependencies
   @echo dependencies '->' $(1)
   @$(DEPENDENCIES) $(DEPENDENCIES_OPTS) \
-  	--parts <%= OntologyPart.serialization_file %> \
-    --groups <%= OntologyGroup.serialization_file %> \
-    --bundles <%= OntologyBundle.serialization_file %> \
+  	--parts $(WORKFLOW)/<%= OntologyPart.serialization_file %> \
+    --groups $(WORKFLOW)/<%= OntologyGroup.serialization_file %> \
+    --bundles $(WORKFLOW)/<%= OntologyBundle.serialization_file %> \
     --types '$(ENTAILMENT_TYPES_SERIALIZED)' \
     --imports-file $(IMPORTS_GRAPH_FILE) $(2) \
     > $(call tmpfile,$(1)) && mv $(call tmpfile,$(1)) $(1)
@@ -510,10 +510,11 @@ imports-graph: $(IMPORTS_GRAPH_FILE)
 
 define do_imports_graph
   @echo imports graph
+  @echo $(dir $@)
   @mkdir -p $(dir $@)
   @$(IMPORTS_GRAPH) $(IMPORTS_GRAPH_OPTS) \
-  	--bundles <%= OntologyBundle.serialization_file %> \
-  	--parts <%= OntologyPart.serialization_file %> \
+  	--bundles $(WORKFLOW)/<%= OntologyBundle.serialization_file %> \
+  	--parts $(WORKFLOW)/<%= OntologyPart.serialization_file %> \
   	$(1) > $(call tmpfile,$@) && \
     (( test -f $@ && cmp -s $@ $(call tmpfile,$@) ) || mv $(call tmpfile,$@) $@)
 endef
@@ -521,7 +522,7 @@ endef
 <%=
   rule = Rule.new('$(IMPORTS_GRAPH_FILE)')
   parts = OntologyPart.list.reject { |p| p.ontology_artifact_only? }
-  rule.prereqs += parts.map { |v| "$(ONTOLOGIES)/"+v.file }
+  rule.prereqs += parts.map { |v| ENV["ONTOLOGIES"]+"/"+v.file }
   args = parts.map { |v| v.iri }.join(' ')
   rule.cmds << "$(call do_imports_graph,#{args})"
   rule
@@ -658,7 +659,7 @@ endef
 <%=
   OntologyPart.list.inject('') do |memo, part|
     rule = Rule.new(part.ontology_artifact)
-    rule.prereqs << "$(ONTOLOGIES)/"+part.file
+    rule.prereqs << ENV["ONTOLOGIES"]+"/"+part.file
     if part.ontology_artifact_only?
       rule.cmds << '$(call do_copy_ontology_artifact)'
     else
@@ -909,7 +910,7 @@ define do_closure
   @echo closure artifact '->' $@
   @mkdir -p $(dir $@)
   @$(CLOSE_BUNDLE) $(CLOSE_BUNDLE_OPTS) \
-    --bundles <%= OntologyBundle.serialization_file %> \
+    --bundles $(WORKFLOW)/<%= OntologyBundle.serialization_file %> \
     --name $(1) --uri $(2) --type $(3) --backbone-disjoints "$(BACKBONE_DISJOINTS)" \
     --backbone-prefix $(BACKBONE_PREFIX) \
     $(4) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
