@@ -35,7 +35,11 @@ $(WORKFLOW)/Makefile: $(WORKFLOW_SOURCES)/Makefile.erb $(WORKFLOW)/logging.prope
 	@echo $< '->' $@
 	(cd $(WORKFLOW); $(JRUBY_CMD) $(MAKE_MAKEFILE) $< > $@.tmp) && mv $@.tmp $@
 
-dependencies: bootstrap
+$(WORKFLOW)/.symlinks:
+	ln -s $(ONTOLOGIES)/* $(WORKFLOW)
+	touch $(WORKFLOW)/.symlinks
+
+dependencies: bootstrap $(WORKFLOW)/.symlinks
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} dependencies)
 
 validate: dependencies
