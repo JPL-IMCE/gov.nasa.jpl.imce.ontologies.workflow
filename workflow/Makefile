@@ -20,14 +20,17 @@ clean:
 	mkdir $(WORKFLOW)/artifacts
 
 
+# Copy required files, and create directory target/workflow in the process
+# if it does not already exist
+
 $(WORKFLOW)/Makefile.erb: $(WORKFLOW_SOURCES)/Makefile.erb
-	cp $< $@
+	cp -p $< $@
 
 $(WORKFLOW)/log4j.properties: $(WORKFLOW_SOURCES)/log4j.properties
-	cp $< $@
+	cp -p $< $@
 
 $(WORKFLOW)/logging.properties: $(WORKFLOW_SOURCES)/logging.properties
-	cp $< $@
+	cp -p $< $@
 
 bootstrap: $(WORKFLOW)/Makefile
 

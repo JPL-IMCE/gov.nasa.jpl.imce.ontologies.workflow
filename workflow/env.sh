@@ -52,4 +52,4 @@ export JENA_HOST="localhost"
 
 export JENA_PORT="8888"
 
-export DOCBOOK_XHTML_XSL="/usr/share/sgml/docbook/xsl-ns-stylesheets-1.78.1/xhtml/docbook.xsl"
+export DOCBOOK_XHTML_XSL="/usr/local/sgml/docbook/xsl-stylesheets-1.78.1/xhtml/docbook.xsl"

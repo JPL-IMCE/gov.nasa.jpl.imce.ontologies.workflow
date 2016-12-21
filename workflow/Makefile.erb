@@ -24,9 +24,11 @@ CP ?= cp -p
 DEPENDENCIES ?= $(JRUBY_CMD) $(TOOLS)/tools/dependencies $(DEPENDENCIES_OPTS)
 DEPENDENCIES_OPTS ?= 
 DEPENDENCIES_FILE ?= .dependencies
-DIRCP ?= cp -Ru
+# Used to be -Ru (unsupported on MacOSX)
+DIRCP ?= cp -R
 
-ENTAIL ?= $(JRUBY_CMD) -J-Djava.util.logging.config.file=logging.properties $(TOOLS)/tools/entail-pellet
+# Used to be entail-pellet
+ENTAIL ?= $(JRUBY_CMD) -J-Djava.util.logging.config.file=logging.properties $(TOOLS)/tools/entail
 ENTAIL_OPTS = 
 
 EXTRACT_JENA ?= $(JRUBY_CMD) $(TOOLS)/tools/extract-jena
