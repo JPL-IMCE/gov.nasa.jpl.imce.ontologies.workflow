@@ -198,7 +198,7 @@ lazy val imce_ontologies_workflow =
 
       addArtifact(Artifact("imce-omf_ontologies-digests", "zip", "zip", Some("resource"), Seq(), None, Map()), artifactZipFile),
 
-      makePom <<= makePom dependsOn artifactZipFile,
+      makePom := { artifactZipFile; makePom.value },
 
       sourceGenerators in Compile := Seq(),
 
