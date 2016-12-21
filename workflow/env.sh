@@ -42,6 +42,7 @@ export GEM_PATH="${GEM_HOME}:/home/sjenkins/.rvm/gems/jruby-1.7.19@global"
 
 export PARALLEL_MAKE_OPTS="-j16 -l32"
 
+# From other_jena libraries
 export FUSEKI_DIR="/opt/local/jena-fuseki1-1.3.1"
 
 export FUSEKI_HOME="/opt/local/jena-fuseki1-1.3.1"
@@ -52,4 +53,5 @@ export JENA_HOST="localhost"
 
 export JENA_PORT="8888"
 
+# Add as maven dependency
 export DOCBOOK_XHTML_XSL="/usr/local/sgml/docbook/xsl-stylesheets-1.78.1/xhtml/docbook.xsl"

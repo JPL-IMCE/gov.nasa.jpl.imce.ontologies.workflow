@@ -23,6 +23,8 @@ lazy val setupTools = taskKey[File]("Location of the imce ontology tools directo
 
 lazy val setupOntologies = taskKey[File]("Location of the imce ontologies, either extracted from dependencies or symlinked")
 
+lazy val artifactZipFile = taskKey[File]("Location of the zip artifact file")
+
 lazy val imce_ontologies_workflow =
   Project("gov-nasa-jpl-imce-ontologies-workflow", file("."))
     .enablePlugins(AetherPlugin)
@@ -162,5 +164,61 @@ lazy val imce_ontologies_workflow =
         }
 
         ontologiesDir
-      }
+      },
+
+      artifactZipFile := {
+        import com.typesafe.sbt.packager.universal._
+        val artifactsDir = baseDirectory.value / "target" / "workflow" / "artifacts"
+        val targetDir = baseDirectory.value / "target"
+        val ontologiesDir= targetDir / "ontologies"
+
+        val bPath = artifactsDir / "bundles"
+        val bFiles = (PathFinder(bPath).*** --- bPath) pair Path.rebase(bPath, ontologiesDir)
+        IO.copy(bFiles, overwrite=true, preserveLastModified=true)
+
+        val dPath = artifactsDir / "digests"
+        val dFiles = (PathFinder(dPath).*** --- dPath) pair Path.rebase(dPath, ontologiesDir)
+        IO.copy(dFiles, overwrite=true, preserveLastModified=true)
+
+        val ePath = artifactsDir / "entailments"
+        val eFiles = (PathFinder(ePath).*** --- ePath) pair Path.rebase(ePath, ontologiesDir)
+        IO.copy(eFiles, overwrite=true, preserveLastModified=true)
+
+        val oPath = artifactsDir / "ontologies"
+        val oFiles = (PathFinder(oPath).*** --- oPath) pair Path.rebase(oPath, ontologiesDir)
+        IO.copy(oFiles, overwrite=true, preserveLastModified=true)
+
+        val fileMappings = ontologiesDir.*** pair relativeTo(targetDir)
+        val zipFile: File = baseDirectory.value / "target" / s"imce-omf_ontologies-digests-${version.value}-resource.zip"
+
+        ZipHelper.zipNative(fileMappings, zipFile)
+
+        zipFile
+      },
+
+      addArtifact(Artifact("imce-omf_ontologies-digests", "zip", "zip", Some("resource"), Seq(), None, Map()), artifactZipFile),
+
+      makePom <<= makePom dependsOn artifactZipFile,
+
+      sourceGenerators in Compile := Seq(),
+
+      managedSources in Compile := Seq(),
+
+      // disable publishing the main jar produced by `package`
+      publishArtifact in(Compile, packageBin) := false,
+
+      // disable publishing the main API jar
+      publishArtifact in(Compile, packageDoc) := false,
+
+      // disable publishing the main sources jar
+      publishArtifact in(Compile, packageSrc) := false,
+
+      // disable publishing the jar produced by `test:package`
+      publishArtifact in(Test, packageBin) := false,
+
+      // disable publishing the test API jar
+      publishArtifact in(Test, packageDoc) := false,
+
+      // disable publishing the test sources jar
+      publishArtifact in(Test, packageSrc) := false
     )
