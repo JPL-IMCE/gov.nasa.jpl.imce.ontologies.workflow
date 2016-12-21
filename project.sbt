@@ -3,7 +3,7 @@ sbtPlugin := false
 
 name := "gov.nasa.jpl.imce.ontologies.workflow"
 
-description := ""
+description := "Workflow for producing derived artifacts from source ontology specifications"
 
 moduleName := name.value
 

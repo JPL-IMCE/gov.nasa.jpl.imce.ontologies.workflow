@@ -24,6 +24,7 @@ make loadprod
 or:
 
 ```shell
+sbt setupTools setupOntologies
 cd workflow
 . env.sh
 make loadprod

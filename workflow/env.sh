@@ -30,13 +30,11 @@ $TOOLS/lib/ruby-pellet:\
 $TOOLS/lib/JGraphT:\
 $TOOLS/lib/OMFMetadata
 
-[ -z "$MY_RUBY_HOME" ] && echo "MY_RUBY_HOME environment not set!"
-# && exit -1
-
 [ -z "$GEM_HOME" ] && echo "GEM_HOME environment not set!"
 # && exit -1
 
-export JRUBY="${MY_RUBY_HOME}/bin/jruby"
+export JRUBY=$(which jruby)
+echo "# JRUBY=$JRUBY"
 
 export GEM_PATH="${GEM_HOME}:/home/sjenkins/.rvm/gems/jruby-1.7.19@global"
 
