@@ -12,4 +12,6 @@ t=$(git name-rev --tags --name-only $(git rev-parse HEAD))
 
 sbt -jvm-opts travis/jvmopts.compile setupTools
 echo "# PUBLIC_ONTOLOGIES_VERSION=${PUBLIC_ONTOLOGIES_VERSION}"
-echo "# JRUBY=$(which jruby)"
+echo "# jruby..."
+jruby -version
+
