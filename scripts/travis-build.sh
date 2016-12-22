@@ -11,6 +11,7 @@ t=$(git name-rev --tags --name-only $(git rev-parse HEAD))
 [ -z "${PUBLIC_ONTOLOGIES_VERSION}" ] && echo "# PUBLIC_ONTOLOGIES_VERSION is unset; exiting!" && exit -1;
 
 rvm install jruby
+rvm use jruby
 
 #sbt -jvm-opts travis/jvmopts.compile setupTools
 echo "# PUBLIC_ONTOLOGIES_VERSION=${PUBLIC_ONTOLOGIES_VERSION}"
