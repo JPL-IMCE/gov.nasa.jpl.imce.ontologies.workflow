@@ -12,14 +12,11 @@ t=$(git name-rev --tags --name-only $(git rev-parse HEAD))
 
 rvm install jruby
 
-ls -l1d ~/.rvm
-
 source ~/.rvm/scripts/rvm
 
 rvm use jruby
 
-#sbt -jvm-opts travis/jvmopts.compile setupTools
 echo "# PUBLIC_ONTOLOGIES_VERSION=${PUBLIC_ONTOLOGIES_VERSION}"
-echo "# jruby..."
-jruby -version
 
+sbt -jvm-opts travis/jvmopts.compile setupTools setupOntologies
+(cd workflow; . env.sh; make loadprod)
