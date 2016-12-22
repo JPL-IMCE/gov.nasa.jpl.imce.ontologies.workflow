@@ -20,9 +20,6 @@ language: scala
 scala:
 - 2.11.8
 
-rvm:
-  - jruby-1.7.9
-
 script:
 - ./scripts/travis-build.sh
 - ./scripts/travis-deploy.sh
