@@ -1,7 +1,7 @@
 
 import java.io.File
 import java.nio.file.Files
-
+import com.typesafe.sbt.packager.chmod
 import sbt.Keys._
 import sbt._
 
@@ -37,7 +37,9 @@ lazy val imce_ontologies_workflow =
           "artifact.kind" -> "workflow")
       },
 
-      // disable automatic dependency on the Scala library
+      scalaVersion := "2.11.8",
+
+        // disable automatic dependency on the Scala library
       autoScalaLibrary := false,
 
       // disable using the Scala version in output paths and artifacts
@@ -73,19 +75,39 @@ lazy val imce_ontologies_workflow =
 
       managedSources in Compile := Seq(),
 
-      libraryDependencies +=
+      libraryDependencies ++= Seq(
         "gov.nasa.jpl.imce"
-        % "gov.nasa.jpl.imce.ontologies.tools"
-        % "0.3.0"
-        artifacts
-        Artifact("gov.nasa.jpl.imce.ontologies.tools", "zip", "zip", "resource"),
+          % "gov.nasa.jpl.imce.ontologies.tools"
+          % "0.3.0"
+          artifacts
+          Artifact("gov.nasa.jpl.imce.ontologies.tools", "zip", "zip", "resource"),
 
-      libraryDependencies +=
         "gov.nasa.jpl.imce"
           % "gov.nasa.jpl.imce.ontologies.public"
           % sys.env.getOrElse("PUBLIC_ONTOLOGIES_VERSION", "1.0.+")
           artifacts
           Artifact("gov.nasa.jpl.imce.ontologies.public", "zip", "zip", "resource"),
+
+        "gov.nasa.jpl.imce" %% "imce.third_party.jena_libraries"
+          % "3.3.+"
+          artifacts
+          Artifact("imce.third_party.jena_libraries", "zip", "zip", "resource"),
+
+        "gov.nasa.jpl.imce" %% "imce.third_party.jena_libraries"
+          % "3.3.+"
+          artifacts
+          Artifact("imce.third_party.jena_libraries", "zip", "zip", "scripts"),
+
+        "net.sf.docbook"
+          % "docbook-xsl"
+          % "1.79.1"
+          % "compile"
+          artifacts
+          // The following should work but SBT fails to download the artifact from the URL below.
+          //Artifact("doxbook-xsl", "zip", "zip", "resources")
+        Artifact("docboox-xsl", url("https://repo1.maven.org/maven2/net/sf/docbook/docbook-xsl/1.79.1/docbook-xsl-1.79.1-resources.zip"))
+
+      ),
 
       setupTools := {
 
@@ -105,6 +127,21 @@ lazy val imce_ontologies_workflow =
                 m.name.startsWith("gov.nasa.jpl.imce.ontologies.tools")
           }
 
+          val sfilter: DependencyFilter = new DependencyFilter {
+            def apply(c: String, m: ModuleID, a: Artifact): Boolean =
+              a.extension == "zip" &&
+                a.classifier == Some("scripts") &&
+                m.organization.startsWith("gov.nasa.jpl.imce") &&
+                m.name.startsWith("imce.third_party.jena_libraries")
+          }
+
+          val dfilter: DependencyFilter = new DependencyFilter {
+            def apply(c: String, m: ModuleID, a: Artifact): Boolean =
+              a.extension == "zip" &&
+                m.organization.startsWith("net.sf.docbook") &&
+                m.name.startsWith("docbook-xsl")
+          }
+
           update.value
             .matching(tfilter)
             .headOption
@@ -112,10 +149,33 @@ lazy val imce_ontologies_workflow =
             slog.error("Cannot find the IMCE ontology tools resource zip!")
           } { zip =>
             IO.unzip(zip, toolsDir)
-            slog.warn(s"Extracted IMCE ontology tools from $zip")
-            slog.warn(s"IMCE ontology tools in: $toolsDir")
+            slog.warn(s"Extracted IMCE ontology tools from ${zip.name}")
+            slog.warn(s"Ontology tools in: $toolsDir")
           }
 
+          update.value
+            .matching(sfilter)
+            .headOption
+            .fold[Unit] {
+            slog.error("Cannot find the jena scripts zip!")
+          } { zip =>
+            IO.unzip(zip, toolsDir)
+            val binFiles = (toolsDir / "bin") ** (- DirectoryFilter)
+            binFiles.get.foreach { f => chmod(f, "755") }
+            slog.warn(s"Extracted jena scripts from ${zip.name}")
+            slog.warn(s"Jena scripts in: $toolsDir")
+          }
+
+          update.value
+            .matching(dfilter)
+            .headOption
+            .fold[Unit] {
+            slog.error("Cannot find the docbook-xsl zip!")
+          } { zip =>
+            IO.unzip(zip, toolsDir)
+            slog.warn(s"Extracted docbook-xsl from ${zip.name}")
+            slog.warn(s"Docbook in: $toolsDir")
+          }
         }
 
         toolsDir
