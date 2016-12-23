@@ -37,9 +37,9 @@ EXTRACT_JENA_OPTS ?= --imports-file $(IMPORTS_GRAPH_FILE) --prefix-file $(PREFIX
 FORM_IMPORTS_CLOSURE ?= $(JRUBY_CMD) $(TOOLS)/tools/form-imports-closure
 FORM_IMPORTS_CLOSURE_OPTS ?= 
 
-FUSEKI_S_DELETE ?= $(FUSEKI_DIR)/s-delete
-FUSEKI_S_GET ?= $(FUSEKI_DIR)/s-get
-FUSEKI_S_PUT ?= $(FUSEKI_DIR)/s-put
+FUSEKI_S_DELETE ?= $(FUSEKI_BIN)/s-delete
+FUSEKI_S_GET ?= $(FUSEKI_BIN)/s-get
+FUSEKI_S_PUT ?= $(FUSEKI_BIN)/s-put
 
 # TODO needs to retrieve the info from the ontologies.public maven artifact or the symlink to the local ontologies dir.
 GET_CM_DATE ?= git log -n 1 --format=%ci

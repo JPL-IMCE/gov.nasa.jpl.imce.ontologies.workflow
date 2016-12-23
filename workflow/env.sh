@@ -42,9 +42,7 @@ echo "# JRUBY=$JRUBY"
 export PARALLEL_MAKE_OPTS="-j16 -l32"
 
 # From other_jena libraries
-export FUSEKI_DIR=$TOOLS
-
-export FUSEKI_HOME=$TOOLS
+export FUSEKI_BIN="${TOOLS}/bin"
 
 export JENA_DATASET="imce-ontologies"
 
