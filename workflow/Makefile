@@ -49,4 +49,5 @@ validate: dependencies
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} validate-xml validate-owl)
 
 loadprod: validate
-	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} load-production artifacts)
+	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} load-production)
+	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} artifacts)
