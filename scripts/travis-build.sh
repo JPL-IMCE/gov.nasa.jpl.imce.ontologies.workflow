@@ -18,5 +18,5 @@ rvm use jruby
 
 echo "# PUBLIC_ONTOLOGIES_VERSION=${PUBLIC_ONTOLOGIES_VERSION}"
 
-sbt -jvm-opts travis/jvmopts.compile setupTools setupOntologies
+sbt -jvm-opts travis/jvmopts.compile setupTools setupOntologies setupFuseki
 (cd workflow; . env.sh; make loadprod)
