@@ -47,7 +47,7 @@ $TOOLS/lib/OMFMetadata
 export JRUBY=$(which jruby)
 echo "# JRUBY=$JRUBY"
 
-export GEM_PATH="${GEM_HOME}:$(dirname $(pwd))/gems@global"
+export GEM_PATH="${GEM_HOME}:$(dirname $(pwd))"
 
 export PARALLEL_MAKE_OPTS="-j16 -l32"
 
