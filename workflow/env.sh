@@ -47,8 +47,7 @@ $TOOLS/lib/OMFMetadata
 export JRUBY=$(which jruby)
 echo "# JRUBY=$JRUBY"
 
-# Is there anything to install from the path below?
-#export GEM_PATH="${GEM_HOME}:/home/sjenkins/.rvm/gems/jruby-1.7.19@global"
+export GEM_PATH="${GEM_HOME}:$(dirname $(pwd))/gems@global"
 
 export PARALLEL_MAKE_OPTS="-j16 -l32"
 

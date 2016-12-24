@@ -1,0 +1,1074 @@
+#!/usr/bin/env ruby
+
+#--
+#
+#    $HeadURL: https://sscae-cm.jpl.nasa.gov/svn/ruby-docbook/trunk/bin/docbook2latex $
+#
+#    $Revision: 103 $
+#    $Date: 2015-05-04 10:55:22 -0700 (Mon, 04 May 2015) $
+#
+#    $Author: sjenkins $
+#
+#    Copyright (c) 2006 California Institute of Technology.
+#    All rights reserved.
+#
+#++
+
+require 'getoptlong'
+require 'logger'
+require 'yaml'
+require 'rexml/document'
+require 'jpl/docbook'
+
+include REXML
+
+def usage
+  warn 'docbook2latex [ --options <options> --style <style> ]'
+end
+
+log_level = Logger::FATAL
+options = '11pt,dvips'
+style = 'specdoc'
+
+GetoptLong.new(
+[ '--config',  '-c',       GetoptLong::REQUIRED_ARGUMENT ],
+[ '--debug',   '-d',       GetoptLong::NO_ARGUMENT ],
+[ '--info',    '-i',       GetoptLong::NO_ARGUMENT ],
+[ '--help',    '-h',       GetoptLong::NO_ARGUMENT ],
+[ '--warn',    '-w',       GetoptLong::NO_ARGUMENT ],
+[ '--options', '-o',       GetoptLong::REQUIRED_ARGUMENT ],
+[ '--style',   '-s',       GetoptLong::REQUIRED_ARGUMENT ]
+).each do |opt, arg|
+  case opt
+  when "--config"
+    config_file = arg.to_s
+  when '--debug'
+    log_level = Logger::DEBUG
+  when '--info'
+    log_level = Logger::INFO
+  when '--warn'
+    log_level = Logger::WARN
+  when "--help"
+    usage
+    exit 0
+  when '--options'
+    options = arg.to_s
+  when '--style'
+    style = arg.to_s
+  end
+end
+
+# Define utility functions.
+
+class String
+  def tex_quote
+    s = dup
+    s.gsub!(/\{/, '\\\{')
+    s.gsub!(/\}/, '\\\}')
+    s.gsub!(/&lt;/, '\\ensuremath{<}')
+    s.gsub!(/&le;/, '\\ensuremath{\\leq}')
+    s.gsub!(/&gt;/, '\\ensuremath{>}')
+    s.gsub!(/&ge;/, '\\ensuremath{\\geq}')
+    s.gsub!(/&deg;/, '\\ensuremath{{}^\\circ}')
+    s.gsub!(/&compfn;/, '\\ensuremath{\\circ}')
+    s.gsub!(/&lcub;/, '\\\{')
+    s.gsub!(/&rcub;/, '\\\}')
+    s.gsub!(/&ldquo;/, '``')
+    s.gsub!(/&rdquo;/, "''")
+    s.gsub!(/&apos;/, "'")
+    s.gsub!(/&nbsp;/, '~')
+    s.gsub!(/&amp;/, '&')
+    s.gsub!(/&mdash;/, '---')
+    s.gsub!(/&ndash;/, '--')
+    s.gsub!(/(&bull;|&#8226;)/, '\\textbullet')
+    s.gsub!(/&copy;/, '\\copyright\\xspace')
+    s.gsub!(/&/, '\\\&')
+    s.gsub!(/_/, '\\\_')
+    s.gsub!(/%/, '\\\%')
+    s.gsub!(/\#/, '\\\#')
+    s.gsub!(/\$/, '\\\$')
+    s.gsub!(/"([^"]*)"/, "``\\1''")
+    s.gsub!(/"/, "''")
+    s.gsub!(/(\w{2,})\/(\w{2,})/, '\\1\\slash \\2')
+    s
+  end
+
+  def parse_svn_revision
+    sub(/\A.*Revision:\s+(\d+)\s+.*\z/, 'Revision \1')
+  end
+
+  def parse_svn_date
+    sub(/\A.*Date:\s+([-\d]+)\s+.*\z/, '\1')
+  end
+
+end
+
+# Open log.
+
+$log = Logger.new(STDERR)
+$log.datetime_format = '%Y-%m-%d %H:%M:%S '
+$log.level = log_level
+
+# Open input file.
+
+input_name = ARGV.shift
+$log.info('parse input')
+d = Document.new(File.open(input_name))
+
+# Set parameters.
+
+param = {}
+param['options'] = options
+param['style'] = style
+base_name = File.basename(input_name, '.*')
+color_file_name = "#{File.dirname(input_name)}/#{base_name}-color.tex"
+color_file = File.open(color_file_name, 'w')
+param['base_name'] = base_name
+param['color_file'] = color_file
+
+param['in_appendix'] = false
+param['sec_depth'] = 0
+param['colorname'] = {}
+param['col_by_name'] = {}
+
+table_fmt = nil
+inst = nil
+
+SEC_NAME = %w{section subsection subsubsection paragraph subparagraph}
+LIST_TYPE = {'orderedlist' => 'enumerate', 'itemizedlist' => 'itemize'}
+COMPACT_LIST = {'enumerate' => 'compactenum', 'itemize' => 'compactitem'}
+
+class Element
+
+  @@ecount = 0
+  @@env_stack = []
+  @@inhibit_par = []
+  @@caption = []
+    
+  def convert(param)
+
+    $log.debug(name)
+
+    # Get attributes.
+
+    role = attributes['role']
+    id = attributes['id']
+    userlevel = attributes['userlevel']
+    orient = attributes['orient'] || 'port'
+
+    # Get processing instructions.
+
+    inst = {}
+    (instructions).each do |i|
+      if i.content
+        h = {}
+        i.content.scan(/\s*(\w+)\s*=\s*["']?([^"']*)["']?/) do |t, v|
+          h[t] = v
+        end
+        inst[i.target] = h
+      end
+    end
+
+    # Profile.
+
+    puts "\\opt{#{userlevel}}{" if userlevel
+
+    case name
+
+    when 'article', 'book'
+
+      # Article or book. Both become articles in LaTeX.
+
+      case name
+      when 'article'
+        documentclass = 'article'
+      when 'book'
+        documentclass = 'article'
+      end
+
+      # Top-level article element. Begin document.
+
+      puts "\\documentclass[#{param['options']}]{#{documentclass}}"
+      puts "\\usepackage{#{param['style']}}"
+      puts "\\include{#{param['base_name'] + '-color'}}"
+      puts '\\begin{document}'
+
+      # Get article title and subtitle.
+
+      title = elements['title']
+      raise 'No document title' unless title
+      puts "\\renewcommand{\\title}{#{title.text.tex_quote}}"
+      delete(title)
+      
+      if subtitle = elements['subtitle']
+        begin
+          text = subtitle.text.tex_quote
+        rescue NoMethodError
+          text = ''
+        end
+        delete(subtitle)
+        puts "\\renewcommand{\\subtitle}{#{text}}"
+      end
+
+      # Get article or book info.
+
+      info = elements['info']
+      raise "No 'info' element for #{e.name}" unless info
+      delete(info)
+
+      # Get biblio id for document number.
+
+      if biblioid = info.elements['biblioid']
+        puts "\\renewcommand{\\docno}{#{(biblioid.text || '').tex_quote}}"
+      end
+
+      # Get publication date.
+
+      if pubdate = info.elements['pubdate']
+        puts "\\renewcommand{\\today}{#{(pubdate.text.parse_svn_date || '').tex_quote}}"
+      end
+
+      # Get optional copyright notice.
+
+      if copyright = info.elements['copyright']
+        copyright.convert(param)
+      end
+      
+      # Get optional legal notice.
+
+      if legalnotice = info.elements['legalnotice']
+        legalnotice.convert(param)
+      end
+
+      # Get optional release info.
+
+      if releaseinfo = info.elements['releaseinfo']
+        print '\\renewcommand{\\releaseinfo}{'
+        print (releaseinfo.text.parse_svn_revision || '').tex_quote
+        puts '}'
+      end
+
+      # Convert children.
+
+      children.each do |c|
+        c.convert(param)
+      end
+
+      # End document.
+
+      puts '\\end{document}'
+
+    when 'chapter', 'appendix', 'section'
+
+      # Document section.
+
+      # Start appendix if necessary.
+
+      if name == 'appendix'
+        unless param['in_appendix']
+          puts '\\appendix'
+          param['in_appendix'] = true
+        end
+      end
+
+      # Construct environment name.
+
+      env = (param['in_appendix'] ? 'appendix' : 'body') +
+      SEC_NAME[param['sec_depth']]
+
+      # Get section title.
+
+      title = elements['title']
+      raise 'No section title' unless title
+      puts "\\begin{#{env}}{#{title.text.tex_quote}}"
+      puts "\\label{#{id}}" if id
+      param['sec_depth'] += 1
+      delete(title)
+
+      # Convert children
+
+      children.each do |c|
+        c.convert(param)
+      end
+
+      # End section.
+
+      puts "\\end{#{env}}"
+      param['sec_depth'] -= 1
+
+    when 'copyright'
+      
+      # Copyright.
+      
+      year = elements['year'].text.tex_quote
+      holder = elements['holder'].text.tex_quote
+      puts "\\renewcommand{\\copyrightnotice}{Copyright \\copyright\\ #{year} #{holder}.}"
+          
+    when 'legalnotice'
+
+      # Legal notice.
+
+      puts '\\renewcommand{\\legalnotice}{%'
+      children.each { |c| c.convert(param) }
+      puts '}'
+
+    when 'abstract'
+
+      # Abstract.
+
+      title = elements['title'] || 'Abstract'
+      puts "\\begin{dbabstract}{#{title.text.tex_quote}}"
+      puts "\\label{#{id}}" if id
+
+      # Convert children
+
+      children.each do |c|
+        c.convert(param)
+      end
+
+      # End abstract.
+
+      puts "\\end{dbabstract}"
+
+    when 'para', 'simpara'
+
+      # Paragraph.
+
+      # Convert children.
+
+      children.each do |c|
+        c.convert(param)
+      end
+
+      # End paragraph.
+
+      puts '\\par' unless (children.empty? or @@inhibit_par.last)
+
+    when 'emphasis', 'citetitle'
+
+      # Emphasized text.
+
+      print role == 'bold' ? '\\textbf{' : '\\emph{'
+
+      # Convert children.
+
+      children.each do |c|
+        c.convert(param)
+      end
+
+      # End emphasized text.
+
+      print '}'
+
+    when 'literal'
+    
+      # Literal text.
+      
+      print "\\verb|#{texts.join.strip}|"
+  
+    when 'figure'
+
+      # Figure.
+
+      puts '\\begin{figure*}'
+      puts '\\centering'
+
+      # Remember title for later processing.
+
+      if title = elements['title']
+        delete(title)
+      end
+      caption = nil
+
+      # Convert children.
+
+      children.each do |c|
+        c.convert(param)
+      end
+
+      # Use title (and/or caption from child mediaobject) to set caption.
+
+      if caption = (@@caption.pop rescue nil)
+        arg = caption
+        if title
+          opt = title
+        end
+      else
+        arg = title
+      end
+      raise 'no title or caption for figure' unless arg
+
+      @@inhibit_par << true
+      print '\\caption'
+      if opt
+        print '['
+        opt.children.each { |c| c.convert(param) }
+        print ']'
+      end
+      print '{'
+      arg.children.each { |c| c.convert(param) }
+      puts '}'
+      @@inhibit_par.pop
+      puts "\\label{#{id}}" if id
+
+      # End Figure.
+
+      puts '\\end{figure*}'
+
+    when 'mediaobject'
+
+      # Push caption for use by enclosing figure.
+
+      if caption = elements['caption']
+        delete(caption)
+      end
+      @@caption << caption
+
+      # Convert children.
+
+      children.each do |c|
+        c.convert(param)
+      end
+
+    when 'imageobject'
+
+      # Convert children.
+
+      children.each do |c|
+        c.convert(param)
+      end
+
+    when 'imagedata'
+
+      # Image Object.
+
+      if attributes['format'] =~ /eps/i
+
+        # Get bounding box of EPS file.
+
+        fileref = attributes['fileref']
+        bbox = nil
+        File.open(fileref) do |f|
+          f.each_line do |l|
+            if m = l.match(/^%%BoundingBox:\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/)
+              bbox = m.to_a[1..-1]
+              break
+            end
+          end
+        end
+        raise "no bounding box for #{fileref}" unless bbox
+
+        # Insert call to macro to set graphics parameters.
+
+        puts "\\setepsgraphicspars{#{bbox.join('}{')}}"
+
+        # Include
+
+        graphicsopts = 'angle=\\epsangle, width=\\epswidth, ' +
+        'height=\\epsheight, keepaspectratio'
+        puts "\\includegraphics[#{graphicsopts}]%"
+        puts "{#{fileref}}"
+
+      end
+
+    when 'itemizedlist', 'orderedlist'
+
+      # Itemized or enumerated list.
+
+      env = LIST_TYPE[name]
+      env = COMPACT_LIST[env] if role == 'compact'
+
+      opt = nil
+      case attributes['numeration']
+      when /arabic/i
+        opt = '1.'
+      when /loweralpha/i
+        opt = 'a.'
+      when /lowerroman/i
+        opt = 'i.'
+      when /upperalpha/i
+        opt = 'A.'
+      when /upperroman/i
+        opt = 'I.'
+      end
+      opt = opt ? "[#{opt}]" : ''
+
+      puts "\\begin{#{env}}#{opt}"
+      @@env_stack << env
+
+      # Convert list items.
+
+      each_element('listitem') do |i|
+        print "\\item "
+        i.children.each do |c|
+          c.convert(param)
+        end
+      end
+
+      # End list.
+
+      env = @@env_stack.pop
+      puts "\\end{#{env}}"
+
+    when 'variablelist'
+
+      # Description list, specialized by role.
+
+      env = 'description'
+      compact = false
+      item = 'item'
+      role.split(/,/).each do |r|
+        case r
+        when 'compact'
+          env = 'compactdesc'
+        when 'inpara'
+          env = 'inparadesc'
+        else
+          env = r + 'list'
+          item = r
+        end
+      end if role
+
+      puts "\\begin{#{env}}"
+      @@env_stack << env
+
+      # Convert list entries.
+
+      each_element('varlistentry') do |e|
+
+        # Term.
+
+        raise "no term" unless terms = e.elements['term']
+        id = e.attributes['id']
+        print "\\#{item}["
+        terms.each do |t|
+          print '\\relax '
+          t.convert(param)
+        end
+        print '\\unskip]'
+
+        # Index terms.
+
+        e.each_element('indexterm') { |it| it.convert(param) }
+
+        # List item.
+
+        raise "no listitem" unless listitem = e.elements['listitem']
+
+        # Convert children.
+
+        listitem.each_element do |c|
+
+          case c.name
+          when 'para', 'simpara'
+
+            # Paragraph.
+
+            print '{'
+            c.convert(param)
+            puts '}'
+
+          when 'formalpara'
+
+            # Formal paragraph.
+
+            raise "no title" unless title = c.elements['title']
+            text = (title.text || '').strip.tex_quote
+            print "{#{text}"
+            c.each_element('indexterm') do |t|
+              print '\\relax'
+              t.convert(param)
+            end
+            print '\\unskip}{'
+            c.each_element('para') do |p|
+              p.convert(param)
+            end
+            puts '}'
+
+          else
+
+            c.convert(param)
+
+          end
+
+        end
+
+        # Cancel any trailing \par.
+
+        #print "\\vfilneg"
+
+        # Label.
+
+        puts "\\label{#{id}}" if id
+
+      end
+
+      # End list.
+
+      env = @@env_stack.pop
+      puts "\\end{#{env}}"
+
+    when 'simplelist'
+
+      raise "unknown simplelist type #{type}" unless (type = attributes['type']) =~ /inline/i
+      unless (members = get_elements('member')).empty?
+        members.first.convert(param)
+        members[1..-1].each do |m|
+          print ", "
+          m.convert(param)
+        end
+        if ((dbl = inst['dblatex']) && (dbl['raggedright'] == 'true'))
+          print '\\raggedright '
+        end
+      end
+
+    when 'member'
+
+      children.each { |c| c.convert(param) }
+
+    when 'table'
+
+      # Table.
+
+      # Title.
+
+      raise "no title" unless title = elements['title']
+      caption = title.text.tex_quote rescue ''
+
+      # Table group.
+
+      raise "no tgroup" unless tgroup = elements['tgroup']
+      table_fmt = []
+      if cols = tgroup.attributes['cols']
+        align = tgroup.attributes['align'][0..0] rescue 'l'
+        0.upto(cols.to_i) do |col|
+          table_fmt[col] = align
+        end
+      else
+        tgroup.each_element('colspec') do |colspec|
+          col = colspec.attributes['colnum'].to_i - 1
+          w = colspec.attributes['colwidth']
+          table_fmt[col] = w ?  "p{#{w}}" :
+          colspec.attributes['align'][0..0]
+          colname = colspec.attributes['colname']
+          param['col_by_name'][colname] = col
+        end
+      end
+
+      # Table head.
+
+      thead = tgroup.elements['thead']
+
+      # Begin table.
+
+      case role
+      when 'longtable'
+
+        puts '\\begin{landscape}' if orient == 'land'
+        puts "{\\longtablesize\\begin{longtable}{#{table_fmt.join}}"
+
+        # First header.
+
+        puts "\\caption{\\normalsize #{caption}}"
+        puts "\\label{#{id}}" if id
+        puts "\\\\"
+        thead.convert(param) if thead
+        puts "\\endfirsthead"
+
+        # Other header.
+
+        puts "\\caption[]{\\normalsize #{caption} (continued)} \\\\"
+        thead.convert(param) if thead
+        puts "\\endhead"
+
+      else
+
+        # Normal table. Not tested.
+
+        puts '{\\tablesize\\begin{table*}'
+        puts "\\begin{tabular}{#{table_fmt.join}}"
+
+      end
+
+      # Table body.
+
+      raise 'no tbody' unless tbody = tgroup.elements['tbody']
+      tbody.convert(param)
+
+      # End table.
+
+      case role
+      when 'longtable'
+        puts '\\end{longtable}}'
+        puts '\\end{landscape}' if orient == 'land'
+      else
+        puts '\\end{tabular}'
+        puts "\\caption{\\normalsize #{caption}}"
+        puts "\\label{#{id}}" if id
+        puts '\\end{table*}}'
+      end
+
+    when 'thead', 'tbody'
+
+      # Table head or body.
+
+      children.each { |c| c.convert(param) }
+
+    when 'row'
+
+      # Table row.
+
+      first_entry = true
+      elements.each do |e|
+        if e.name == 'entry'
+          if first_entry
+            first_entry = false
+          else
+            print '& '
+          end
+        end
+        e.convert(param)
+      end
+      puts '\\\\'
+
+    when 'entry'
+
+      # Table row entry.
+
+      # Column spanning.
+
+      if namest = attributes['namest']
+        startc = param['col_by_name'][namest]
+        endc = param['col_by_name'][attributes['nameend']]
+        len = endc - startc + 1
+        print "\\multicolumn{#{len}}{l}{"
+      else
+        print '{\\relax '
+      end
+
+      # Rotation.
+
+      if rotate = attributes['rotate'] and rotate == '1'
+        print '\\begin{turn}{90}'
+      end
+
+      # Convert children.
+
+      children.each { |c| c.convert(param) }
+
+      # End rotation.
+
+      puts '\\end{turn}' if rotate
+
+      # Processing instructions.
+
+      if ((dbh = inst['dbhtml']) && (c = dbh['bgcolor']))
+        cname = c.sub(/^#/, '')
+        cdef = cname.scan(/[[:xdigit:]]{2}/).map! do |c|
+          '%.2f' % (c.to_i(16).to_f / 255.0)
+        end.join(',')
+        unless param['colorname'][cdef]
+          param['colorname'][cdef] = cname
+          param['color_file'].puts "\\definecolor{#{cname}}{rgb}{#{cdef}}"
+        end
+        print "\\cellcolor{#{param['colorname'][cdef]}}"
+      end
+        
+      # End entry.
+
+      puts '}'
+
+    when 'xref'
+
+      # Xref.
+
+      linkend = attributes['linkend']
+      if xrefstyle = attributes['xrefstyle']
+        xrefstyle << '~'
+      else
+        xrefstyle = ''
+      end
+      print "#{xrefstyle}\\ref{#{linkend}}\\xspace "
+
+    when 'link'
+
+      # Link. Does this work?
+
+      linkend = attributes['linkend']
+      puts "\\hyperlink{#{linkend}}{%"
+
+      # Convert children.
+
+      children.each { |c| c.convert(param) }
+
+      # End link.
+
+      puts '}%'
+
+    when 'ulink'
+
+      # Link.
+
+      url = attributes['url']
+      type = attributes['type']
+      puts "\\href{#{url}}{%"
+
+      # Convert children.
+
+      children.each { |c| c.convert(param) }
+
+      # End link.
+
+      puts '}%'
+      puts "\\footnote{\\url{#{url.gsub(/#/, '\\#')}}}" unless type == 'inline'
+
+    when 'note'
+
+      # Note.
+
+      puts "\\begin{note}"
+
+      # Convert children.
+
+      children.each { |c| c.convert(param) }
+
+      # End note.
+
+      puts "\\end{note}"
+
+    when 'footnote'
+
+      # Footnote.
+
+      puts '\\footnote{%'
+
+      # Convert children.
+
+      children.each { |c| c.convert(param) }
+
+      # End footnote.
+
+      puts '}'
+
+    when 'quote'
+
+      # Inline quote.
+
+      print '``'
+
+      # Convert children.
+
+      children.each { |c| c.convert(param) }
+
+      # end inline quote.
+
+      print "''"
+
+    when 'blockquote'
+
+      # Block quotation.
+
+      env = role || 'quote'
+      puts "\\begin{#{env}}"
+
+      # Convert children.
+
+      children.each { |c| c.convert(param) }
+
+      # end block quotation.
+
+      puts "\\end{#{env}}"
+
+    when 'warning'
+
+      # Warning.
+
+      puts '\\renewcommand{\\coverwarning}{%'
+
+      # Convert children.
+
+      children.each { |c| c.convert(param) }
+
+      # End warning.
+
+      puts '}'
+
+    when 'beginpage'
+
+      # Begin page.
+
+      puts '\\beginpage'
+
+    when 'equation', 'informalequation'
+
+      each_element('mediaobject/textobject') do |to|
+        next unless to.attributes['role'] == 'tex'
+        puts '\\begin{equation}'
+        to.each_element('phrase') do |p|
+          print String.new(p.text + p.cdatas.join).gsub(/\s+/m, ' ')
+        end
+        puts '\\end{equation}'
+      end
+
+    when 'inlineequation'
+
+      each_element('inlinemediaobject/textobject') do |to|
+        next unless to.attributes['role'] == 'tex'
+        to.each_element('phrase') do |p|
+          print '$' +
+          String.new(p.text + p.cdatas.join).gsub(/\s+/m, ' ') +
+          '$\\xspace '
+        end
+      end
+
+    when 'glossary'
+
+      # Glossary.
+
+      puts '\\begin{backsection}{\\glossarytitle}'
+      puts "\\label{#{id}}" if id
+
+      if role == 'auto'
+
+        # Auto glossary. Input externally produced file.
+
+        puts "\\input{\\jobname .gls}"
+
+      else
+
+        # Literal glossary. Convert children.
+
+        children.each { |c| c.convert(param) }
+
+      end
+
+      # End glossary.
+
+      puts '\\end{backsection}'
+
+    when 'index'
+
+      # Index.
+
+      puts '\\begin{backsection}{\\indextitle}'
+      puts "\\label{#{id}}" if id
+      puts "\\input{\\jobname .ind}"
+
+      # End glossary.
+
+      puts '\\end{backsection}'
+
+    when 'glossterm'
+
+      # Glossary term.
+
+      if baseform = attributes['baseform']
+
+        # Baseform found. Safe to descend.
+
+        puts "\\glossary{#{baseform}}%"
+        children.each { |c| c.convert(param) }
+
+      else
+
+        # No baseform found. Use text attribute; do not descend.
+
+        if text
+          qt = text.tex_quote
+          print "\\glossary{#{qt}}#{qt}"
+        end
+
+      end
+
+    when 'indexterm'
+
+      # Index term.
+
+      terms = []
+      map = {'primary' => 0, 'secondary' => 1, 'tertiary' => 2}
+      elements.each do |e|
+        if index = map[e.name]
+          key = e.attributes['sortas'] rescue nil
+          term = e.text.strip.tex_quote rescue nil
+          term = key + '@' + term if key
+          terms[index] = term
+        end
+      end
+      entry = terms.join('!')
+      sig = attributes['significance'] rescue ''
+      entry << '|preferredindex' if sig == 'preferred'
+      print "\\index{#{entry}}\\xspace "
+
+    when 'classname', 'property', 'varname', 'replaceable'
+
+      # Miscellaneous elements. Wrap in corresponding environment.
+
+      env = 'db' + name
+      print "\\#{env}{"
+      children.each { |c| c.convert(param) }
+      print '}'
+
+    when 'superscript'
+
+      # Superscript.
+
+      print "\\ensuremath{^{"
+      children.each { |c| c.convert(param) }
+      print "}}"
+
+    when 'subscript'
+
+      # Subscript.
+
+      print "\\ensuremath{_{"
+      children.each { |c| c.convert(param) }
+      print "}}"
+
+    else
+
+      # Unknown element
+
+      msg = "unknown docbook element #{name}"
+      $log.error(msg)
+      raise msg
+
+    end
+
+    # General processing instructions.
+    
+    puts "\\pagebreak" if inst['hard-pagebreak']
+
+    # End profile.
+
+    puts '}' if userlevel
+
+    if ((@@ecount += 1) % 500 == 0)
+      $log.info("processed #{@@ecount} elements")
+    end
+
+  end
+
+end
+
+class Text
+  def convert(param)
+    unless (s = to_s.gsub(/\s+/, ' ')).empty?
+      print s.tex_quote
+    end
+  end
+
+end
+
+class Object
+  def convert(param)
+  end
+
+end
+
+$log.info('process elements')
+d.each do |e|
+  e.convert(param)
+end
+
+color_file.close
+$log.info('done')
