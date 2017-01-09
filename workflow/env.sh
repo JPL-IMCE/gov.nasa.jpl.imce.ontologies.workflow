@@ -49,7 +49,7 @@ echo "# JRUBY=$JRUBY"
 
 export GEM_PATH="${GEM_HOME}:$(dirname $(pwd))"
 
-export PARALLEL_MAKE_OPTS="-j16 -l32"
+export PARALLEL_MAKE_OPTS="-j4 -l8"
 
 export JENA_DATASET="imce-ontologies"
 
