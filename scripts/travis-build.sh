@@ -16,6 +16,8 @@ source ~/.rvm/scripts/rvm
 
 rvm use jruby
 
+gem install gems/docbook-1.0.7.gem
+
 echo "# PUBLIC_ONTOLOGIES_VERSION=${PUBLIC_ONTOLOGIES_VERSION}"
 
 sbt -jvm-opts travis/jvmopts.compile setupTools setupOntologies setupFuseki
