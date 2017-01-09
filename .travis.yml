@@ -11,6 +11,7 @@ addons:
   apt:
     packages:
       - xsltproc
+      - docbook-xsl
 
 before_cache:
   # Tricks to avoid unnecessary cache updates
