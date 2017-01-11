@@ -13,6 +13,7 @@ addons:
       - xsltproc
       - docbook-xml
       - docbook-xsl
+      - zip
 
 before_cache:
   # Tricks to avoid unnecessary cache updates
