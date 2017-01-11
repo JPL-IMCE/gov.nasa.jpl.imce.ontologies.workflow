@@ -107,8 +107,13 @@ lazy val imce_ontologies_workflow =
           artifacts
           // The following should work but SBT fails to download the artifact from the URL below.
           //Artifact("doxbook-xsl", "zip", "zip", "resources")
-        Artifact("docboox-xsl", url("https://repo1.maven.org/maven2/net/sf/docbook/docbook-xsl/1.79.1/docbook-xsl-1.79.1-resources.zip"))
+          Artifact("docboox-xsl", url("https://repo1.maven.org/maven2/net/sf/docbook/docbook-xsl/1.79.1/docbook-xsl-1.79.1-resources.zip")),
 
+        "gov.nasa.jpl.imce"
+          % "gov.nasa.jpl.imce.profileGenerator.application"
+          % "2.4.+"
+          artifacts
+          Artifact("gov.nasa.jpl.imce.profileGenerator.application", "zip", "zip", "resource")
       ),
 
       setupTools := {
