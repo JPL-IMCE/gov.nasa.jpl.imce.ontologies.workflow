@@ -267,7 +267,8 @@ lazy val imce_ontologies_workflow =
         val fileMappings = ontologiesDir.*** pair relativeTo(targetDir)
         val zipFile: File = baseDirectory.value / "target" / s"imce-omf_ontologies-digests-${version.value}-resource.zip"
 
-        ZipHelper.zipNative(fileMappings, zipFile)
+        //ZipHelper.zipNative(fileMappings, zipFile)
+        IO.zip(fileMappings, zipFile)
 
         zipFile
       },
