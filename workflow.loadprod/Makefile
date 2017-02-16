@@ -73,3 +73,8 @@ validate: dependencies
 loadprod: validate
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} load-production)
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} artifacts)
+
+profiles: loadprod
+	find $(WORKFLOW) -type f -name "*.json" | while read line; do
+		sbt test-only gov.nasa.jpl.imce.profileGenerator.batch.tests.RunProfileGenerator -- -digest="$(line)"
+	done
