@@ -75,6 +75,4 @@ loadprod: validate
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} artifacts)
 
 profiles: loadprod
-	find $(WORKFLOW) -type f -name "*.json" | while read line; do
-		sbt test-only gov.nasa.jpl.imce.profileGenerator.batch.tests.RunProfileGenerator -- -digest="$(line)"
-	done
+	(find $(WORKFLOW) -type f -name "*.json" | while read line; do cd $(WORKFLOW)/../..; sbt '; set javaOptions in Test  +="-D-Ddigest='$$line'"; test-only gov.nasa.jpl.imce.ontologies.workflow.runner.BatchRunProfileGenerator -- -Ddigest='$$line ; done )

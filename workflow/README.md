@@ -13,21 +13,25 @@ nice make ${PARALLEL_MAKE_OPTS} load-production artifacts
 becomes:
 
 ```shell
+sbt setupTools setupOntologies setupFuseki
 cd workflow
 . env.sh
 make bootstrap
 make dependencies
 make validate
 make loadprod
+make profiles
+sbt packageProfiles
 ```
 
 or:
 
 ```shell
-sbt setupTools setupOntologies
+sbt setupTools setupOntologies setupFuseki
 cd workflow
 . env.sh
-make loadprod
+make profiles
+sbt packageProfiles
 ```
 
 # TODO:
