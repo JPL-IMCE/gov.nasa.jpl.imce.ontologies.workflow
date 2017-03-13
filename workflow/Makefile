@@ -67,12 +67,25 @@ $(WORKFLOW)/.symlinks:
 dependencies: bootstrap $(WORKFLOW)/.symlinks
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} dependencies)
 
-validate: dependencies
+validation-dependencies:
+	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} validation-dependencies)
+
+validate-syntax:
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} validate-xml validate-owl)
 
-loadprod: validate
+validate-groups: validation-dependencies
+	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} validate-groups)
+
+validate-bundles: validation-dependencies
+	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} validate-bundles)
+
+loadprod: validate-syntax dependencies
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} load-production)
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} artifacts)
 
 profiles: loadprod
-	(find $(WORKFLOW) -type f -name "*.json" | while read line; do cd $(WORKFLOW)/../..; sbt '; set javaOptions in Test  +="-D-Ddigest='$$line'"; test-only gov.nasa.jpl.imce.ontologies.workflow.runner.BatchRunProfileGenerator -- -Ddigest='$$line ; done )
+	(find $(WORKFLOW) -type f -name "*.json" | while read line; \
+		do \
+	        cd $(WORKFLOW)/../..; \
+	        sbt '; set javaOptions in Test  +="-D-Ddigest='$$line'"; test-only gov.nasa.jpl.imce.ontologies.workflow.runner.BatchRunProfileGenerator -- -Ddigest='$$line ; \
+	    done )

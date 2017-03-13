@@ -31,6 +31,7 @@ sbt setupTools setupOntologies setupFuseki
 cd workflow
 . env.sh
 make profiles
+cd ..
 sbt packageProfiles
 ```
 
