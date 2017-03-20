@@ -703,7 +703,7 @@ lazy val imce_ontologies_workflow =
         zipFile
       },
 
-      addArtifact(Artifact("imce-omf_ontologies-profiles", "zip", "zip", Some("resource"), Seq(), None, Map()), packageProfiles),
+      addArtifact(Artifact("gov.nasa.jpl.imce.ontologies.workflow", "zip", "zip", Some("profiles"), Seq(), None, Map()), packageProfiles),
 
       artifactZipFile := {
         import com.typesafe.sbt.packager.universal._
@@ -736,7 +736,7 @@ lazy val imce_ontologies_workflow =
         zipFile
       },
 
-      addArtifact(Artifact("imce-omf_ontologies-digests", "zip", "zip", Some("resource"), Seq(), None, Map()), artifactZipFile),
+      addArtifact(Artifact("gov.nasa.jpl.imce.ontologies.workflow", "zip", "zip", Some("digests"), Seq(), None, Map()), artifactZipFile),
 
       makePom := { artifactZipFile; makePom.value },
 

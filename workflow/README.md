@@ -21,6 +21,7 @@ make dependencies
 make validate
 make loadprod
 make profiles
+cd ..
 sbt packageProfiles
 ```
 
