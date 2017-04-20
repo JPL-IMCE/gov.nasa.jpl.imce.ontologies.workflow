@@ -23,6 +23,9 @@ export WORKFLOW=$(dirname $(pwd))/target/workflow
 # Read/write
 export FUSEKI_BASE=$(dirname $(pwd))/target/run
 
+# SBT
+[ -z "$SBT" ] && export SBT=$(which sbt)
+
 [ ! -d $WORKFLOW ] && mkdir $WORKFLOW
 
 [ ! -d $WORKFLOW/artifacts ] && mkdir $WORKFLOW/artifacts

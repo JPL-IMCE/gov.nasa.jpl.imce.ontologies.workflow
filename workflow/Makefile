@@ -13,6 +13,7 @@
 JRUBY ?= jruby
 JRUBY_CMD ?= $(JRUBY) --headless
 MAKE_MAKEFILE ?= $(TOOLS)/tools/make-makefile
+SBT ?= sbt
 
 FUSEKI_PID ?= $(WORKFLOW)/log/fuseki.pid
 FUSEKI_LOG ?= $(WORKFLOW)/log/fuseki.log
@@ -87,5 +88,5 @@ profiles: loadprod
 	(find $(WORKFLOW) -type f -name "*.json" | while read line; \
 		do \
 	        cd $(WORKFLOW)/../..; \
-	        sbt '; set javaOptions in Test  +="-D-Ddigest='$$line'"; test-only gov.nasa.jpl.imce.ontologies.workflow.runner.BatchRunProfileGenerator -- -Ddigest='$$line ; \
+	        $(SBT) '; set javaOptions in Test  +="-D-Ddigest='$$line'"; test-only gov.nasa.jpl.imce.ontologies.workflow.runner.BatchRunProfileGenerator -- -Ddigest='$$line ; \
 	    done )
