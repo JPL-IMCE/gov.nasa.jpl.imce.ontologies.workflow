@@ -12,5 +12,6 @@ git config --global push.default simple
 git config --global user.email "nobody@nobody.org"
 git config --global user.name "Jenkins CI"
 
+sbt packageProfiles
 sbt publishSigned
 
