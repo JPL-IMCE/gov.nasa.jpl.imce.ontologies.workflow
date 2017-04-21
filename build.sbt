@@ -236,11 +236,11 @@ lazy val imce_ontologies_workflow =
 
         val mdInstallDir = base / "target" / "md.package"
 
-        //val depJars = ((base / "lib") ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
-        val depJars = ((base / "lib") ** "*.jar").get.map(Attributed.blank)
+        val depJars = ((base / "lib") ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
+        //val depJars = ((base / "lib") ** "*.jar").get.map(Attributed.blank)
 
-        //val libJars = (mdInstallDir ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
-        val mdLibJars = ((mdInstallDir / "lib") ** "*.jar").get.map(Attributed.blank)
+        val libJars = (mdInstallDir ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
+        //val mdLibJars = ((mdInstallDir / "lib") ** "*.jar").get.map(Attributed.blank)
         val mdPluginLibJars = ((mdInstallDir / "plugins") ** "*.jar").get.map(Attributed.blank)
         val mdDynScLibJars = ((mdInstallDir / "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
 
