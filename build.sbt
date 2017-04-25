@@ -234,22 +234,30 @@ lazy val imce_ontologies_workflow =
         val s = streams.value
         val _ = extractArchives.value
 
-        val mdInstallDir = base / "target" / "md.package"
+//        val mdInstallDir = base / "target" / "md.package"
+//
+//        //val depJars = ((base / "lib") ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
+//        val depJars = ((base / "lib") ** "*.jar").get.map(Attributed.blank)
+//
+//        //val libJars = (mdInstallDir ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
+//        val mdLibJars = ((mdInstallDir / "lib") ** "*.jar").get.map(Attributed.blank)
+//        val mdPluginLibJars = ((mdInstallDir / "plugins") ** "*.jar").get.map(Attributed.blank)
+//        val mdDynScLibJars = ((mdInstallDir / "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
+//
+//        val allJars = mdLibJars ++ mdPluginLibJars ++ mdDynScLibJars ++ depJars ++ prev
+//
+//        s.log.info(s"=> Adding ${allJars.size} unmanaged jars")
+//
+//        allJars
 
-        //val depJars = ((base / "lib") ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
-        val depJars = ((base / "lib") ** "*.jar").get.map(Attributed.blank)
-
-        //val libJars = (mdInstallDir ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
-        val mdLibJars = ((mdInstallDir / "lib") ** "*.jar").get.map(Attributed.blank)
-        val mdPluginLibJars = ((mdInstallDir / "plugins") ** "*.jar").get.map(Attributed.blank)
-        val mdDynScLibJars = ((mdInstallDir / "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
-
-        val allJars = mdLibJars ++ mdPluginLibJars ++ mdDynScLibJars ++ depJars ++ prev
-
-        s.log.info(s"=> Adding ${allJars.size} unmanaged jars")
-
-        allJars
+        s.log.info(s"=> Adding ${prev.size} unmanaged jars")
+        prev
       },
+
+      unmanagedSourceDirectories in Compile += baseDirectory.value / "lib",
+      unmanagedSourceDirectories in Compile += baseDirectory.value / "target" / "md.package" / "lib",
+      unmanagedSourceDirectories in Compile += baseDirectory.value / "target" / "md.package" / "plugins",
+      unmanagedSourceDirectories in Compile += baseDirectory.value / "target" / "md.package" / "dynamicScripts",
 
       unmanagedJars in Test := (unmanagedJars in Compile).value,
 
