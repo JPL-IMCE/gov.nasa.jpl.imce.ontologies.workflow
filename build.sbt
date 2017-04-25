@@ -111,7 +111,7 @@ lazy val imce_ontologies_workflow =
 
         "gov.nasa.jpl.imce"
           % "gov.nasa.jpl.imce.ontologies.public"
-          % sys.env.getOrElse("PUBLIC_ONTOLOGIES_VERSION", "1.1+")
+          % sys.env.getOrElse("PUBLIC_ONTOLOGIES_VERSION", "1.2+")
           artifacts
           Artifact("gov.nasa.jpl.imce.ontologies.public", "zip", "zip", "resource"),
 
@@ -258,7 +258,7 @@ lazy val imce_ontologies_workflow =
 
      // unmanagedJars in Test := (unmanagedJars in Compile).value,
 
-      unmanagedSourceDirectories in Test += (unmanagedSourceDirectories in Compile).value,
+      unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Compile).value,
 
       unmanagedClasspath in Test := (unmanagedJars in Test).value,
 
