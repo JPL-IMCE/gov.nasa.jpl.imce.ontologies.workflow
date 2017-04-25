@@ -66,7 +66,7 @@ lazy val imce_ontologies_workflow =
 
       scalaVersion := "2.11.8",
 
-      // disable automatic dependency on the Scala library
+        // disable automatic dependency on the Scala library
       autoScalaLibrary := false,
 
       // disable using the Scala version in output paths and artifacts
@@ -111,7 +111,7 @@ lazy val imce_ontologies_workflow =
 
         "gov.nasa.jpl.imce"
           % "gov.nasa.jpl.imce.ontologies.public"
-          % sys.env.getOrElse("PUBLIC_ONTOLOGIES_VERSION", "1.1+")
+          % sys.env.getOrElse("PUBLIC_ONTOLOGIES_VERSION", "1.2+")
           artifacts
           Artifact("gov.nasa.jpl.imce.ontologies.public", "zip", "zip", "resource"),
 
@@ -228,18 +228,18 @@ lazy val imce_ontologies_workflow =
             s"=> use existing md.install.dir=$mdInstallDir")
       },
 
-      unmanagedJars in Compile := {
-        val prev = (unmanagedJars in Compile).value
-        val base = baseDirectory.value
-        val s = streams.value
-        val _ = extractArchives.value
-
+//      unmanagedJars in Compile := {
+//        val prev = (unmanagedJars in Compile).value
+//        val base = baseDirectory.value
+//        val s = streams.value
+//        val _ = extractArchives.value
+//
 //        val mdInstallDir = base / "target" / "md.package"
 //
 //        //val depJars = ((base / "lib") ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
 //        val depJars = ((base / "lib") ** "*.jar").get.map(Attributed.blank)
 //
-//        //val libJars = (mdInstallDir ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
+//        //val mdLibJars = (mdInstallDir ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
 //        val mdLibJars = ((mdInstallDir / "lib") ** "*.jar").get.map(Attributed.blank)
 //        val mdPluginLibJars = ((mdInstallDir / "plugins") ** "*.jar").get.map(Attributed.blank)
 //        val mdDynScLibJars = ((mdInstallDir / "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
@@ -249,17 +249,16 @@ lazy val imce_ontologies_workflow =
 //        s.log.info(s"=> Adding ${allJars.size} unmanaged jars")
 //
 //        allJars
+//      },
 
-        s.log.info(s"=> Adding ${prev.size} unmanaged jars")
-        prev
-      },
-
-      unmanagedSourceDirectories in Compile += baseDirectory.value / "lib",
+      unmanagedSourceDirectories in Compile += baseDirectory.value / "target" / "md.package",
       unmanagedSourceDirectories in Compile += baseDirectory.value / "target" / "md.package" / "lib",
       unmanagedSourceDirectories in Compile += baseDirectory.value / "target" / "md.package" / "plugins",
       unmanagedSourceDirectories in Compile += baseDirectory.value / "target" / "md.package" / "dynamicScripts",
 
-      unmanagedJars in Test := (unmanagedJars in Compile).value,
+     // unmanagedJars in Test := (unmanagedJars in Compile).value,
+
+      unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Compile).value,
 
       unmanagedClasspath in Test := (unmanagedJars in Test).value,
 
