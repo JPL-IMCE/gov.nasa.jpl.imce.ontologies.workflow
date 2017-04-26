@@ -17,7 +17,7 @@ BACKBONE_DISJOINTS ?= Entity ReifiedObjectProperty ReifiedStructuredDataProperty
 BACKBONE_PREFIX ?= http://imce.jpl.nasa.gov/backbone/
 
 CI_REVISION_NUMBER ?= [unknown]
-CLOSE_BUNDLE ?= $(JRUBY_CMD) $(TOOLS)/tools/close-bundle-jena
+CLOSE_BUNDLE ?= $(JRUBY_CMD) $(TOOLS)/tools/close-bundle
 CLOSE_BUNDLE_OPTS ?= 
 CP ?= cp -p
 
@@ -912,10 +912,11 @@ define do_closure
   @echo closure artifact '->' $@
   @mkdir -p $(dir $@)
   @$(CLOSE_BUNDLE) $(CLOSE_BUNDLE_OPTS) \
-    --bundles $(WORKFLOW)/<%= OntologyBundle.serialization_file %> \
-    --name $(1) --uri $(2) --type $(3) --backbone-disjoints "$(BACKBONE_DISJOINTS)" \
+    --namespace '$(3) => $(2)' \
+    --namespace '$(5) => $(4)' \
+    --name $(1) --uri $(2) --backbone-disjoints "$(BACKBONE_DISJOINTS)" \
     --backbone-prefix $(BACKBONE_PREFIX) \
-    $(4) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
+    $(6) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
 endef
 
 <%=
@@ -935,7 +936,7 @@ endef
     bundle.imported_bundles.each do |ib|
       iri_args << ib.iri unless ib.type == 'omg'
     end
-    rule.cmds << "$(call do_closure,#{bundle.name},#{bundle.iri},#{bundle.type},#{iri_args.join(' ')})"
+    rule.cmds << "$(call do_closure,#{bundle.name},#{bundle.iri},#{bundle.abbrev},#{bundle.backbone_iri},#{bundle.backbone_abbrev},#{iri_args.join(' ')})"
     memo << rule.to_s
     memo
   end
@@ -952,7 +953,7 @@ endef
     bundle.imported_bundles.each do |ib|
       iri_args << (ib.type == 'imce' ? ib.embedding_iri : ib.iri)
     end
-    rule.cmds << "$(call do_closure,#{bundle.name},#{bundle.embedding_iri},#{bundle.type},#{iri_args.join(' ')})"
+    rule.cmds << "$(call do_closure,#{bundle.embedding_name},#{bundle.embedding_iri},#{bundle.embedding_abbrev},#{bundle.backbone_iri},#{bundle.backbone_abbrev},#{iri_args.join(' ')})"
     memo << rule.to_s
     memo
   end
