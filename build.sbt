@@ -228,37 +228,30 @@ lazy val imce_ontologies_workflow =
             s"=> use existing md.install.dir=$mdInstallDir")
       },
 
-//      unmanagedJars in Compile := {
-//        val prev = (unmanagedJars in Compile).value
-//        val base = baseDirectory.value
-//        val s = streams.value
-//        val _ = extractArchives.value
-//
-//        val mdInstallDir = base / "target" / "md.package"
-//
-//        //val depJars = ((base / "lib") ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
-//        val depJars = ((base / "lib") ** "*.jar").get.map(Attributed.blank)
-//
-//        //val mdLibJars = (mdInstallDir ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
-//        val mdLibJars = ((mdInstallDir / "lib") ** "*.jar").get.map(Attributed.blank)
-//        val mdPluginLibJars = ((mdInstallDir / "plugins") ** "*.jar").get.map(Attributed.blank)
-//        val mdDynScLibJars = ((mdInstallDir / "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
-//
-//        val allJars = mdLibJars ++ mdPluginLibJars ++ mdDynScLibJars ++ depJars ++ prev
-//
-//        s.log.info(s"=> Adding ${allJars.size} unmanaged jars")
-//
-//        allJars
-//      },
+      unmanagedJars in Compile := {
+        val prev = (unmanagedJars in Compile).value
+        val base = baseDirectory.value
+        val s = streams.value
+        val _ = extractArchives.value
 
-      unmanagedSourceDirectories in Compile += baseDirectory.value / "target" / "md.package",
-      unmanagedSourceDirectories in Compile += baseDirectory.value / "target" / "md.package" / "lib",
-      unmanagedSourceDirectories in Compile += baseDirectory.value / "target" / "md.package" / "plugins",
-      unmanagedSourceDirectories in Compile += baseDirectory.value / "target" / "md.package" / "dynamicScripts",
+        val mdInstallDir = base / "target" / "md.package"
 
-     // unmanagedJars in Test := (unmanagedJars in Compile).value,
+        //val depJars = ((base / "lib") ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
+        val depJars = ((base / "lib") ** "*.jar").get.map(Attributed.blank)
 
-      unmanagedSourceDirectories in Test ++= (unmanagedSourceDirectories in Compile).value,
+        //val mdLibJars = (mdInstallDir ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
+        val mdLibJars = ((mdInstallDir / "lib") ** "*.jar").get.map(Attributed.blank)
+        val mdPluginLibJars = ((mdInstallDir / "plugins") ** "*.jar").get.map(Attributed.blank)
+        val mdDynScLibJars = ((mdInstallDir / "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
+
+        val allJars = mdLibJars ++ mdPluginLibJars ++ mdDynScLibJars ++ depJars ++ prev
+
+        s.log.info(s"=> Adding ${allJars.size} unmanaged jars")
+
+        allJars
+      },
+
+      unmanagedJars in Test := (unmanagedJars in Compile).value,
 
       unmanagedClasspath in Test := (unmanagedJars in Test).value,
 
