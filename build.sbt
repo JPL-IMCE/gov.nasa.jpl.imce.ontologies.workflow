@@ -233,11 +233,12 @@ lazy val imce_ontologies_workflow =
         val prev = (unmanagedJars in Compile).value
         val s = streams.value
         val _ = extractArchives.value
+        val mdBasePath = "target/md.package/"
 
         val depJars = (file("lib") ** "*.jar").get.map(Attributed.blank)
-        val mdLibJars = (file("target/md.package/lib") ** "*.jar").get.map(Attributed.blank)
-        val mdPluginLibJars = (file("target/md.package/plugins") ** "*.jar").get.map(Attributed.blank)
-        val mdDynScLibJars = (file("target/md.package/dynamicScripts") ** "*.jar").get.map(Attributed.blank)
+        val mdLibJars = (file(mdBasePath + "lib") ** "*.jar").get.map(Attributed.blank)
+        val mdPluginLibJars = (file(mdBasePath + "plugins") ** "*.jar").get.map(Attributed.blank)
+        val mdDynScLibJars = (file(mdBasePath + "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
 
         val allJars = mdLibJars ++ mdPluginLibJars ++ depJars ++ mdDynScLibJars ++ prev
 
