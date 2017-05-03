@@ -229,24 +229,20 @@ lazy val imce_ontologies_workflow =
       },
 
       unmanagedJars in Compile := {
+
         val prev = (unmanagedJars in Compile).value
-        val base = baseDirectory.value
         val s = streams.value
         val _ = extractArchives.value
 
-        val mdInstallDir = base / "target" / "md.package"
+        val depJars = (file("lib") ** "*.jar").get.map(Attributed.blank)
+        val mdLibJars = (file("target/md.package/lib") ** "*.jar").get.map(Attributed.blank)
+        val mdPluginLibJars = (file("target/md.package/plugins") ** "*.jar").get.map(Attributed.blank)
+        val mdDynScLibJars = (file("target/md.package/dynamicScripts") ** "*.jar").get.map(Attributed.blank)
 
-        //val depJars = ((base / "lib") ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
-        val depJars = ((base / "lib") ** "*.jar").get.map(Attributed.blank)
-
-        //val mdLibJars = (mdInstallDir ** "*").filter{f => f.isDirectory && ((f) * "*.jar").get.nonEmpty}.get.map(Attributed.blank)
-        val mdLibJars = ((mdInstallDir / "lib") ** "*.jar").get.map(Attributed.blank)
-        val mdPluginLibJars = ((mdInstallDir / "plugins") ** "*.jar").get.map(Attributed.blank)
-        val mdDynScLibJars = ((mdInstallDir / "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
-
-        val allJars = mdLibJars ++ mdPluginLibJars ++ mdDynScLibJars ++ depJars ++ prev
+        val allJars = mdLibJars ++ mdPluginLibJars ++ depJars ++ mdDynScLibJars ++ prev
 
         s.log.info(s"=> Adding ${allJars.size} unmanaged jars")
+        //s.log.info(s"=> base directory ${allJars.toString()}")
 
         allJars
       },
