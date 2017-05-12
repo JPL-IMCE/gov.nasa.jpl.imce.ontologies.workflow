@@ -11,8 +11,10 @@ pipeline {
 
 	stages {
 		stage('Checkout') {
-			/* This will clone the specific revision which triggered this Pipeline run. */
-			checkout scm
+			steps {
+				/* This will clone the specific revision which triggered this Pipeline run. */
+				checkout scm
+			}
 		}
 		stage('Build') {
 			steps {
