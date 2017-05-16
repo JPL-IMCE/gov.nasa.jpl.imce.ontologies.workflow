@@ -1,3 +1,6 @@
+node {
+        def sbtHome = tool 'default-sbt'
+        def SBT = "${sbtHome}/bin/sbt"
 pipeline {
 	/* Agent directive is required. */
 	agent any
@@ -15,10 +18,6 @@ pipeline {
 	}
 
 	stages {
-node {
-        def sbtHome = tool 'default-sbt'
-        def SBT = "${sbtHome}/bin/sbt"
-}
 		stage('Checkout') {
 			steps {
 				/* This will clone the specific revision which triggered this Pipeline run. */
@@ -85,4 +84,5 @@ node {
 			}
 		}
 	}
+}
 }
