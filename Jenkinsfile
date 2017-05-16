@@ -6,7 +6,12 @@ pipeline {
 		string(name: 'VERSION_ONTOLOGIES', defaultValue: '1.+', description: '')
 
 		/* Unfortunately, SCM environment variables are currently not available in Jenkinsfile. */
-		string(name: 'VERSION_PROFILES', defaultValue: '{env.BUILD_TAG}', description: 'The version of the profile resource to produce.')
+		string(name: 'VERSION_PROFILES', defaultValue: '{binding.variables.get("TAG_NAME")}', description: 'The version of the profile resource to produce.')
+
+		/* What to perform during build */
+		string(name: 'VALIDATE', defaultValue: 'TRUE', description: 'Whether to run validation. This may be forced if not done previously before other, dependent steps (such as digest generation of profile generation).')
+		string(name: 'BUILD_DIGESTS', defaultValue: 'TRUE', description: 'Whether or not to build digests. This may be forced if not done previously before other, dependent steps (i.e., profile generation).')
+		string(name: 'BUILD_PROFILES', defaultValue: 'TRUE', description: 'Whether or not to generate profiles and build the profile resource.')
 	}
 
 	stages {
@@ -14,19 +19,35 @@ pipeline {
 			steps {
 				/* This will clone the specific revision which triggered this Pipeline run. */
 				checkout scm
+
+				def TAG_NAME = binding.variables.get("TAG_NAME")
+				if (TAG_NAME != null) {
+					sh "echo $TAG_NAME"
+				} else {
+					sh "echo Non-tag build"
+				}
 			}
 		}
-		stage('Build') {
+		stage('Compile') {
 			steps {
-				echo "Building workflow unit..."
+				echo "Compiling workflow unit..."
 
 				sh 'sbt compile test:compile'
 				archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
+		stage('Setup') {
+			steps {
+				echo "Setting up environment..."
+
+				// setup Fuseki, ontologies, tools, environment
+			}
+		}
 		stage('Validate-Ontologies') {
 			steps {
 				echo "Validating ontologies..."
+
+				// run makefile command, same for others below
 			}
 		}
 		stage('Build-Digests') {
@@ -50,6 +71,8 @@ pipeline {
 		stage('Build-Profile-Resource') {
 			steps {
 				echo "Building profile resource..."
+
+				sh 'sbt packageProfiles'
 			}
 		}
 		stage('Deploy') {
