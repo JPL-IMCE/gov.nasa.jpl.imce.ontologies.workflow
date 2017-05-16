@@ -1,4 +1,4 @@
-pipeline {
+node {
 	/* Agent directive is required. */
 	agent any
 
