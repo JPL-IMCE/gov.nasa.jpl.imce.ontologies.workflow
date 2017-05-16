@@ -25,7 +25,7 @@ pipeline {
 			steps {
 				echo "Compiling workflow unit..."
 
-				sh '${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'} compile test:compile'
+				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'} compile test:compile"
 				archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
