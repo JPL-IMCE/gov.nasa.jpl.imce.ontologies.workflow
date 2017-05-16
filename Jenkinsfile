@@ -2,6 +2,9 @@ pipeline {
 	/* Agent directive is required. */
 	agent any
 
+	def sbtHome = tool 'default-sbt'
+  	def SBT = "${sbtHome}/bin/sbt"
+
 	parameters {
 		string(name: 'VERSION_ONTOLOGIES', defaultValue: '1.+', description: '')
 
@@ -19,21 +22,13 @@ pipeline {
 			steps {
 				/* This will clone the specific revision which triggered this Pipeline run. */
 				checkout scm
-
-				echo 'Tag name:'
-				echo env.TAG_NAME
-				//if (TAG_NAME != null) {
-				//	sh "echo $TAG_NAME"
-				//} else {
-				//	sh "echo Non-tag build"
-				//}
 			}
 		}
 		stage('Compile') {
 			steps {
 				echo "Compiling workflow unit..."
 
-				sh 'sbt compile test:compile'
+				sh '${SBT} compile test:compile'
 				archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
