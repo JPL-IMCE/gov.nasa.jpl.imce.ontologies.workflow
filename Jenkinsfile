@@ -1,9 +1,10 @@
-node {
+pipeline {
 	/* Agent directive is required. */
 	agent any
 
-        def sbtHome = tool 'default-sbt'
-        def SBT = "${sbtHome}/bin/sbt"
+	tools {
+		sbt 'default-sbt'
+	}
 
 	parameters {
 		string(name: 'VERSION_ONTOLOGIES', defaultValue: '1.+', description: '')
@@ -17,6 +18,7 @@ node {
 		string(name: 'BUILD_PROFILES', defaultValue: 'TRUE', description: 'Whether or not to generate profiles and build the profile resource.')
 	}
 
+	stages {
 		stage('Checkout') {
 			steps {
 				/* This will clone the specific revision which triggered this Pipeline run. */
@@ -27,7 +29,7 @@ node {
 			steps {
 				echo "Compiling workflow unit..."
 
-				sh '${SBT} compile test:compile'
+				sh 'sbt compile test:compile'
 				archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
@@ -82,5 +84,6 @@ node {
 				//sh 'scripts/jenkins-publish.sh'
 			}
 		}
+	}
 }
 
