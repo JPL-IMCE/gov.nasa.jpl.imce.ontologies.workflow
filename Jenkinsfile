@@ -2,6 +2,11 @@ pipeline {
 	/* Agent directive is required. */
 	agent any
 
+	/* The following is NOT supported currently! (see below for a workaround) */
+//	tools {
+//		sbt 'default-sbt'	// Even specifying the suggested org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation does not work
+//	}
+
 	parameters {
 		string(name: 'VERSION_ONTOLOGIES', defaultValue: '1.+', description: '')
 
@@ -25,7 +30,8 @@ pipeline {
 			steps {
 				echo "Compiling workflow unit..."
 
-				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'} compile test:compile"
+				// Thanks to https://gist.github.com/muuki88/e2824008b653ac0fc5ba749fdf249616 for this one!
+				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt compile test:compile"
 				archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
