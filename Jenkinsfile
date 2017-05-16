@@ -1,12 +1,10 @@
-node {
-	def sbtHome = tool 'default-sbt'
-	def SBT = "${sbtHome}/bin/sbt"
-}
-
 pipeline {
 	/* Agent directive is required. */
 	agent any
-
+	node {
+        	def sbtHome = tool 'default-sbt'
+        	def SBT = "${sbtHome}/bin/sbt"
+	}
 	parameters {
 		string(name: 'VERSION_ONTOLOGIES', defaultValue: '1.+', description: '')
 
