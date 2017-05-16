@@ -17,7 +17,6 @@ node {
 		string(name: 'BUILD_PROFILES', defaultValue: 'TRUE', description: 'Whether or not to generate profiles and build the profile resource.')
 	}
 
-	stages {
 		stage('Checkout') {
 			steps {
 				/* This will clone the specific revision which triggered this Pipeline run. */
@@ -83,6 +82,5 @@ node {
 				//sh 'scripts/jenkins-publish.sh'
 			}
 		}
-	}
 }
 
