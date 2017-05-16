@@ -2,10 +2,6 @@ pipeline {
 	/* Agent directive is required. */
 	agent any
 
-	tools {
-		org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation 'default-sbt'
-	}
-
 	parameters {
 		string(name: 'VERSION_ONTOLOGIES', defaultValue: '1.+', description: '')
 
@@ -29,7 +25,7 @@ pipeline {
 			steps {
 				echo "Compiling workflow unit..."
 
-				sh 'sbt compile test:compile'
+				sh '${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'} compile test:compile'
 				archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
