@@ -3,7 +3,7 @@ pipeline {
 	agent any
 
 	tools {
-		sbt 'default-sbt'
+		org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation 'default-sbt'
 	}
 
 	parameters {
