@@ -48,7 +48,6 @@ cd workflow
 . env.sh
 make bootstrap
 make dependencies
-make validate
 make loadprod
 cd ..
 ```
