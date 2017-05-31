@@ -41,14 +41,38 @@ When running in a CI system (such as Jenkins), the agent may need to be configur
 The above assumes a recommended standard installation of Jenkins 2.4.x, with the recommended plugins installed (e.g., GitHub plugin, JUnit plugin)
 
 ## Running
-*MISSING: SETTING UP EXPORT RESULTS / RUNNING OML2OWL*
 
 Before running the workflow, ensure that all encrypted data is decrypted locally. 
+
+There are two variations depending on which ontologies are to be processed.
+
+### Processing the official ontologies
+
+The official ontologies are retrieved from an SBT dependency.
+
+```sh
+sbt setupOntologies 
+```
+
+### With other ontologies
+
+`target/ontologies` must be either a folder with IMCE ontologies or a symlink to such a folder.
+
+### Converting the ontologies
+
+Regardless of their provenance, IMCE ontologies are represented as textual `*.oml` files 
+that need to be converted to `*.owl` for the ontology workflow.
+
+```sh
+sbt convertOntologies
+```
+
+### Processing the ontologies
 
 To run the pre-population and validation of ontologies, execute the following commands in a terminal, starting at the project root:
 
 ```sh
-sbt setupOntologies setupTools setupFuseki
+sbt setupTools
 cd workflow
 . env.sh
 make bootstrap
@@ -57,11 +81,10 @@ make loadprod
 cd ..
 ```
 
-In the above, `sbt setupOntologies` will fetch the latest released version of the IMCE ontologies (1.+). These will then be processed and validated (which may take significant time), and loaded into a Fuseki instance (which is either set up as part of the workflow if not running, or a running instance is reused).
-
 To generate profiles, execute the following additional steps:
 
 ```sh
+sbt setupProfileGenerator
 cd workflow
 make digests
 make profiles
