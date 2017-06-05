@@ -26,6 +26,8 @@ pipeline {
 			steps {
 				/* This will clone the specific revision which triggered this Pipeline run. */
 				checkout scm
+
+				// TODO: Clone a OML repo here?
 			}
 		}
 		stage('Setup') {
@@ -51,6 +53,7 @@ pipeline {
 				//archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
+		// TODO: Add a stage here for OML -> OWL Conversion?
 		stage('Pre-Process Ontologies') {
 			when {
 				expression { params.LOAD_FUSEKI == 'TRUE' }
