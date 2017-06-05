@@ -623,7 +623,7 @@ lazy val imce_ontologies_workflow =
           slog.warn(s"OML Converter not found in $omlConverterBin")
         }
 
-        omlFiles
+        omlFiles.map(p => p._1)
       },
 
       // TODO This must be extracted over a MD install as a dynamic script
