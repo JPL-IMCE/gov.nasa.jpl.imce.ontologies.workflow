@@ -25,6 +25,10 @@ resolvers := {
     previous
 }
 
+val extractArchives
+: TaskKey[Unit]
+= TaskKey[Unit]("extract-archives", "Extracts ZIP files")
+
 lazy val mdInstallDirectory = SettingKey[File]("md-install-directory", "MagicDraw Installation Directory")
 
 mdInstallDirectory in Global :=
@@ -38,11 +42,14 @@ lazy val testsResultsSetupTask = taskKey[Unit]("Create the tests results directo
 
 lazy val mdJVMFlags = SettingKey[Seq[String]]("md-jvm-flags", "Extra JVM flags for running MD (e.g., debugging)")
 
-lazy val setupFuseki = taskKey[File]("Location of the apache jena fuseki server extracted from dependencies")
-
 lazy val setupTools = taskKey[File]("Location of the imce ontology tools directory extracted from dependencies")
 
+/* @TODO Since this workflow project should be agnostic of which ontologies are processed,
+ * the setup of the ontologies (currently from bintray) should be done outside of this workflow project.
+ */
 lazy val setupOntologies = taskKey[File]("Location of the imce ontologies, either extracted from dependencies or symlinked")
+
+lazy val convertOntologies = taskKey[Seq[File]]("Convert all ontologies found in target/ontologies from *.oml to *.owl")
 
 lazy val artifactZipFile = taskKey[File]("Location of the zip artifact file")
 
@@ -102,6 +109,11 @@ lazy val imce_ontologies_workflow =
 
       managedSources in Compile := Seq(),
 
+      resolvers +=
+        "Artifactory" at "https://cae-artifactory.jpl.nasa.gov/artifactory/maven-libs-release-local/",
+
+      classpathTypes += "tgz",
+
       libraryDependencies ++= Seq(
         "gov.nasa.jpl.imce"
           % "gov.nasa.jpl.imce.ontologies.tools"
@@ -143,8 +155,24 @@ lazy val imce_ontologies_workflow =
         "gov.nasa.jpl.imce"
           %% "gov.nasa.jpl.imce.profileGenerator.batch"
           % "0.2.2"
-          % "test" classifier "tests"
+          % "test" classifier "tests",
+
+        "gov.nasa.jpl.imce"
+          % "gov.nasa.jpl.imce.oml.converters"
+          % "0.1.0.1" artifacts Artifact("gov.nasa.jpl.imce.oml.converters", "tgz", "tgz") from
+          "https://cae-artifactory.jpl.nasa.gov/artifactory/maven-libs-release-local/gov/nasa/jpl/imce/gov.nasa.jpl.imce.oml.converters/0.1.0.1/gov.nasa.jpl.imce.oml.converters-0.1.0.1.tgz"
       ),
+
+      // Avoid unresolvable dependencies from old versions of log4j
+      libraryDependencies ~= {
+        _ map {
+          case m if m.organization == "log4j" =>
+            m.exclude("javax.jms", "jms")
+              .exclude("com.sun.jmx", "jmxri")
+              .exclude("com.sun.jdmk", "jmxtools")
+          case m => m
+        }
+      },
 
       unmanagedClasspath in Compile ++= (unmanagedJars in Compile).value,
 
@@ -477,6 +505,13 @@ lazy val imce_ontologies_workflow =
                 m.name.startsWith("docbook-xsl")
           }
 
+          val cfilter: DependencyFilter = new DependencyFilter {
+            def apply(c: String, m: ModuleID, a: Artifact): Boolean =
+              a.extension == "tgz" &&
+                m.organization.startsWith("gov.nasa.jpl.imce") &&
+                m.name.startsWith("gov.nasa.jpl.imce.oml.converters")
+          }
+
           update.value
             .matching(tfilter)
             .headOption
@@ -498,46 +533,32 @@ lazy val imce_ontologies_workflow =
             slog.warn(s"Extracted docbook-xsl from ${zip.name}")
             slog.warn(s"Docbook in: $toolsDir")
           }
+
+          update.value
+            .matching(cfilter)
+            .headOption
+            .fold[Unit] {
+            slog.error("Cannot find the oml.converters zip!")
+          } { tgz =>
+            val omlConverterDir = toolsDir / "omlConverter"
+            IO.createDirectory(omlConverterDir)
+            Process(Seq("tar", "--strip-components", "1", "-zxf", tgz.getAbsolutePath), Some(omlConverterDir)).! match {
+              case 0 => ()
+              case n => sys.error("Error extracting " + tgz + ". Exit code: " + n)
+            }
+            slog.warn(s"Extracted oml.converters from ${tgz.name}")
+            slog.warn(s"oml.converter in: $omlConverterDir")
+          }
+
         }
 
         toolsDir
       },
 
-      setupFuseki := {
 
-        val slog = streams.value.log
-
-        val fusekiDir = baseDirectory.value / "target" / "fuseki"
-
-        if (fusekiDir.exists()) {
-          slog.warn(s"Apache jena fuseki already extracted in $fusekiDir")
-        }  else {
-          IO.createDirectory(fusekiDir)
-
-          val jfilter: DependencyFilter = new DependencyFilter {
-            def apply(c: String, m: ModuleID, a: Artifact): Boolean =
-              a.extension == "tar.gz" &&
-                m.organization.startsWith("org.apache.jena") &&
-                m.name.startsWith("apache-jena-fuseki")
-          }
-          update.value
-            .matching(jfilter)
-            .headOption
-            .fold[Unit] {
-            slog.error("Cannot find apache-jena-fuseki tar.gz!")
-          } { tgz =>
-            slog.warn(s"found: $tgz")
-            val dir = target.value / "tarball"
-            Process(Seq("tar", "--strip-components", "1", "-zxf", tgz.getAbsolutePath), Some(fusekiDir)).! match {
-              case 0 => ()
-              case n => sys.error("Error extracting " + tgz + ". Exit code: " + n)
-            }
-          }
-        }
-
-        fusekiDir
-      },
-
+      /* @TODO Since this workflow project should be agnostic of which ontologies are processed,
+       * the setup of the ontologies (currently from bintray) should be done outside of this workflow project.
+       */
       setupOntologies := {
 
         val slog = streams.value.log
@@ -581,6 +602,28 @@ lazy val imce_ontologies_workflow =
         }
 
         ontologiesDir
+      },
+
+      convertOntologies := {
+        val slog = streams.value.log
+
+        val ontologiesDir = baseDirectory.value / "target" / "ontologies"
+        val omlCatalog = "oml.catalog.xml"
+        val omlFiles = (ontologiesDir ** "*.oml") pair relativeTo(ontologiesDir)
+        // TODO add '.bat' if running on windows...
+        val omlConverterBin = baseDirectory.value / "target" / "tools" / "omlConverter" / "bin" / "omlConverter"
+        if (omlConverterBin.exists()) {
+
+          val args: Seq[String] = Seq(omlConverterBin.toString, "-cat", omlCatalog) ++ omlFiles.map(_.toString)
+          Process(args, ontologiesDir).! match {
+            case 0 => ()
+            case n => sys.error("Error running oml.converter. Exit code: " + n)
+          }
+        } else {
+          slog.warn(s"OML Converter not found in $omlConverterBin")
+        }
+
+        omlFiles
       },
 
       // TODO This must be extracted over a MD install as a dynamic script
