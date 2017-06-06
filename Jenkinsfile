@@ -41,8 +41,9 @@ pipeline {
 				// Decrypt files
 				// TODO Add OpenSSL installation as prerequisite to readme?
 				// TODO Add environment variable?
-				echo "encryption password = \$ENCRYPTION_PASSWORD"
-				sh "scripts/jenkins-decode.sh"
+				withCredentials([string(credentialsId: 'ENCRYPTION_PASSWORD', variable: 'ENCRYPTION_PASSWORD')]) {
+					sh "scripts/jenkins-decode.sh"
+				}
 
 				// setup Fuseki, ontologies, tools, environment
 			}
