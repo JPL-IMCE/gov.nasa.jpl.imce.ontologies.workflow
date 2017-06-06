@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -ev
+set +x
 
 #[ ! ${ENCRYPTION_PASSWORD} ] && exit -1;
 
