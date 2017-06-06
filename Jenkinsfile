@@ -29,6 +29,7 @@ pipeline {
 				checkout scm
 			}
 		}
+
 		stage('Setup') {
 			steps {
 				echo "Setting up environment..."
@@ -43,6 +44,7 @@ pipeline {
 				// setup Fuseki, ontologies, tools, environment
 			}
 		}
+
 		stage('Compile') {
 			steps {
 				echo "Compiling workflow unit..."
@@ -52,6 +54,7 @@ pipeline {
 				//archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
+
 		stage('OML to OWL') {
 			when {
 				expression { params.OML_REPO != 'undefined' }
@@ -66,6 +69,7 @@ pipeline {
 				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} convertOntologies"
 			}
 		}
+
 		stage('Pre-Process Ontologies') {
 			when {
 				expression { params.LOAD_FUSEKI == 'TRUE' }
@@ -78,6 +82,7 @@ pipeline {
 				// run makefile command, same for others below
 			}
 		}
+
 		stage('Build Digests') {
 			when {
 				expression { params.BUILD_DIGESTS == 'TRUE' }
@@ -88,6 +93,7 @@ pipeline {
 				sh "cd workflow; . env.sh; /usr/bin/make digests"
 			}
 		}
+
 		stage('Build Profiles') {
 			/*
 			 * Note: this step requires digests to exist already!
@@ -109,6 +115,7 @@ pipeline {
 				junit '**/target/*.xml'
 			}
 		}
+
 		stage('Build Profile Resource') {
 			steps {
 				echo "Building profile resource..."
@@ -116,6 +123,7 @@ pipeline {
 				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} packageProfiles"
 			}
 		}
+
 		stage('Deploy') {
 			/*
 			 * In addition to the below guard, jenkins-deploy.sh will check whether

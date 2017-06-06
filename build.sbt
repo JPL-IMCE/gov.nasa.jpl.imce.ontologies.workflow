@@ -159,8 +159,10 @@ lazy val imce_ontologies_workflow =
 
         "gov.nasa.jpl.imce"
           % "gov.nasa.jpl.imce.oml.converters"
-          % "0.1.0.1" artifacts Artifact("gov.nasa.jpl.imce.oml.converters", "tgz", "tgz") from
-          "https://cae-artifactory.jpl.nasa.gov/artifactory/maven-libs-release-local/gov/nasa/jpl/imce/gov.nasa.jpl.imce.oml.converters/0.1.0.1/gov.nasa.jpl.imce.oml.converters-0.1.0.1.tgz"
+          //% "0.1.0.1" artifacts Artifact("gov.nasa.jpl.imce.oml.converters", "tgz", "tgz") from
+          % "0.1.0.2" artifacts Artifact("gov.nasa.jpl.imce.oml.converters", "tar", "tar") from
+          "file:///Users/sherzig/Downloads/gov-nasa-jpl-imce-oml-converters-0.1.0.2.tar"
+          //"https://cae-artifactory.jpl.nasa.gov/artifactory/maven-libs-release-local/gov/nasa/jpl/imce/gov.nasa.jpl.imce.oml.converters/0.1.0.1/gov.nasa.jpl.imce.oml.converters-0.1.0.1.tgz"
       ),
 
       // Avoid unresolvable dependencies from old versions of log4j
@@ -507,7 +509,8 @@ lazy val imce_ontologies_workflow =
 
           val cfilter: DependencyFilter = new DependencyFilter {
             def apply(c: String, m: ModuleID, a: Artifact): Boolean =
-              a.extension == "tgz" &&
+              //a.extension == "tgz" &&
+              a.extension == "tar" &&
                 m.organization.startsWith("gov.nasa.jpl.imce") &&
                 m.name.startsWith("gov.nasa.jpl.imce.oml.converters")
           }
