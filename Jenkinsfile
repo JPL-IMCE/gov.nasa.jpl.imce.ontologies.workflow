@@ -34,6 +34,8 @@ pipeline {
 			steps {
 				echo "Setting up environment..."
 
+				sh "env"
+
 				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} setupTools"
 
 				// Decrypt files
