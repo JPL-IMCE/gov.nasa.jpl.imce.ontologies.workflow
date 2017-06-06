@@ -611,13 +611,13 @@ lazy val imce_ontologies_workflow =
         val slog = streams.value.log
 
         val ontologiesDir = baseDirectory.value / "target" / "ontologies"
-        val omlCatalog = "oml.catalog.xml"
+        val omlCatalog = baseDirectory.value / "target" / "ontologies" / "oml.catalog.xml"
         val omlFiles = (ontologiesDir ** "*.oml") pair relativeTo(ontologiesDir)
         // TODO add '.bat' if running on windows...
         val omlConverterBin = baseDirectory.value / "target" / "tools" / "omlConverter" / "bin" / "omlConverter"
         if (omlConverterBin.exists()) {
 
-          val args: Seq[String] = Seq(omlConverterBin.toString, "-cat", omlCatalog) ++ omlFiles.map(_.toString)
+          val args: Seq[String] = Seq(omlConverterBin.toString, "-cat", omlCatalog.toString) ++ omlFiles.map(_.toString)
           Process(args, ontologiesDir).! match {
             case 0 => ()
             case n => sys.error("Error running oml.converter. Exit code: " + n)
