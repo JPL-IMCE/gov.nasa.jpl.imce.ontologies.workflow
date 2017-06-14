@@ -23,6 +23,9 @@ export WORKFLOW=$(dirname $(pwd))/target/workflow
 # Read/write
 export FUSEKI_BASE=$(dirname $(pwd))/target/run
 
+# Read-only
+export AUDITS=$(dirname $(pwd))/data/Audit
+
 # SBT
 [ -z "$SBT" ] && export SBT=$(which sbt)
 

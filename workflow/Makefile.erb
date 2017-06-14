@@ -79,7 +79,7 @@ OWL_TEST_FILE = tests/validate-owl.xml
 PREFIX_FILE ?= .prefixes.yaml
 PREFIXES_PRODUCTION_SENTINEL ?= .production/$(PREFIX_FILE)
 
-REIFICATION_REFACTORING_AUDIT ?= $(TOOLS)/data/Audit/non-recurring/no-non-derived-object-property-is-reified-by-a-property-chain.rb
+REIFICATION_REFACTORING_AUDIT ?= $(AUDITS)/non-recurring/no-non-derived-object-property-is-reified-by-a-property-chain.rb
 RUBY ?= ruby
 RUBY_CMD ?= $(RUBY)
 RUBYLIB ?= 
@@ -90,11 +90,11 @@ RUN_AUDITS_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset $(JENA_DATA
 UPDATE_METADATA ?= $(JRUBY_CMD) $(TOOLS)/tools/update-metadata
 UPDATE_METADATA_OPTS ?= 
 
-VALIDATE_BUNDLE_TREE_IMCE ?= $(TOOLS)/data/Audit/bundle/imce
-VALIDATE_BUNDLE_TREE_OMG ?= $(TOOLS)/data/Audit/bundle/omg
-VALIDATE_GROUP_TREE_ALL ?= $(TOOLS)/data/Audit/group/all
-VALIDATE_GROUP_TREE_NO_EMBEDDING ?= $(TOOLS)/data/Audit/group/all/no-embedding
-VALIDATE_GROUP_TREE_NO_FULL_REIFICATION ?= $(TOOLS)/data/Audit/group/all/no-embedding/no-full-reification
+VALIDATE_BUNDLE_TREE_IMCE ?= $(AUDITS)/bundle/imce
+VALIDATE_BUNDLE_TREE_OMG ?= $(AUDITS)/bundle/omg
+VALIDATE_GROUP_TREE_ALL ?= $(AUDITS)/group/all
+VALIDATE_GROUP_TREE_NO_EMBEDDING ?= $(AUDITS)/group/all/no-embedding
+VALIDATE_GROUP_TREE_NO_FULL_REIFICATION ?= $(AUDITS)/group/all/no-embedding/no-full-reification
 VALIDATE_OWL ?= $(JRUBY_CMD) -J-Djava.util.logging.config.file=logging.properties $(TOOLS)/tools/validate-owl
 VALIDATE_OWL_OPTS ?= --satisfiability
 VALIDATE_XML ?= $(TOOLS)/tools/validate-xml
@@ -263,18 +263,29 @@ if include_imce_behavior_group && include_imce_analysis_group
   imce_behavior_group = ImceOntologyGroup.new(path, stem)
   imce_behavior_group.depends_on(imce_analysis_group)
   imce_behavior_group << OntologyPart.new(path, stem)
-  #imce_behavior_group << OntologyViewPart.new(path, stem + VIEW_SUFFIX)
   imce_behavior_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
+# scenario
+
+include_imce_scenario_group = true
+if include_imce_scenario_group && include_imce_behavior_group
+  path = 'imce.jpl.nasa.gov/foundation/scenario'
+  stem = 'scenario'
+  imce_scenario_group = ImceOntologyGroup.new(path, stem)
+  imce_scenario_group.depends_on(imce_behavior_group)
+  imce_scenario_group << OntologyPart.new(path, stem)
+  imce_scenario_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # project
 
 include_imce_project_group = true
-if include_imce_project_group && include_imce_analysis_group
+if include_imce_project_group && include_imce_scenario_group
   path = 'imce.jpl.nasa.gov/foundation/project'
   stem = 'project'
   imce_project_group = ImceOntologyGroup.new(path, stem)
-  imce_project_group.depends_on(imce_analysis_group)
+  imce_project_group.depends_on(imce_scenario_group)
   imce_project_group << OntologyPart.new(path, stem)
   imce_project_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
@@ -309,7 +320,7 @@ end
 
 # state analysis
 
-include_imce_state_analysis_group = true
+include_imce_state_analysis_group = false
 if include_imce_state_analysis_group && include_imce_project_group
   path = 'imce.jpl.nasa.gov/discipline/state-analysis'
   stem = 'state-analysis'
@@ -321,7 +332,7 @@ end
 
 # risk
 
-include_imce_risk_group = true
+include_imce_risk_group = false
 if include_imce_risk_group && include_imce_project_group
   path = 'imce.jpl.nasa.gov/discipline/risk'
   stem = 'risk'
@@ -333,7 +344,7 @@ end
 
 # mechanical
 
-include_imce_mechanical_group = true
+include_imce_mechanical_group = false
 if include_imce_mechanical_group && include_imce_project_group
   path = 'imce.jpl.nasa.gov/discipline/mechanical'
   stem = 'mechanical'
@@ -398,11 +409,9 @@ imce_project_bundle_groups = [
 	imce_analysis_group,
 	imce_project_group,
 	imce_behavior_group,
+	imce_scenario_group,
 	imce_fault_management_group,
-	imce_state_analysis_group,
-	imce_vandv_group,
-	imce_risk_group,
-	imce_mechanical_group ]
+	imce_vandv_group ]
 if include_imce_project_bundle
   imce_project_bundle = ImceOntologyBundle.new('imce.jpl.nasa.gov/foundation/project', 'project', 'project', ONTOLOGY_DIGEST_EXTENSION)
   imce_project_bundle.owl2_mof2_group = imce_owl2_mof2_group
