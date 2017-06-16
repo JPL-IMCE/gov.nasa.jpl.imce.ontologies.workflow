@@ -65,6 +65,9 @@ $(WORKFLOW)/.symlinks:
 	ln -s $(ONTOLOGIES)/* $(WORKFLOW)
 	touch $(WORKFLOW)/.symlinks
 
+catalogs: bootstrap $(WORKFLOW)/.symlinks
+	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} catalogs)
+
 dependencies: bootstrap $(WORKFLOW)/.symlinks
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} dependencies)
 
