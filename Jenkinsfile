@@ -37,7 +37,7 @@ pipeline {
 
 				sh "env"
 
-				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} setupTools"
+				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} setupTools setupFuseki"
 
 				// Decrypt files
 				// TODO Add OpenSSL installation as prerequisite to readme?
