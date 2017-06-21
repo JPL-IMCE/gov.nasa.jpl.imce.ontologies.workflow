@@ -69,7 +69,7 @@ pipeline {
 
 				// TODO Move cloning to checkout stage?
 				sh "rm -rf target/ontologies"	// Need to make sure it's empty before cloning
-				sh "mkdir -p target/ontologies; cd target/ontologies; git clone ${OML_REPO} .; git checkout ${OML_REPO_BRANCH}"
+				sh "mkdir -p target; cd target; git clone ${OML_REPO} .; git checkout ${OML_REPO_BRANCH}"
 
 				// Invoke the convertOntologies SBT task
 				//sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} convertOntologies"
