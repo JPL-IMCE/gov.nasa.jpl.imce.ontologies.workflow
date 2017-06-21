@@ -49,6 +49,8 @@ lazy val setupTools = taskKey[File]("Location of the imce ontology tools directo
  */
 lazy val setupOntologies = taskKey[File]("Location of the imce ontologies, either extracted from dependencies or symlinked")
 
+lazy val setupFuseki = taskKey[File]("Location of the Fuseki binaries")
+
 lazy val convertOntologies = taskKey[Seq[File]]("Convert all ontologies found in target/ontologies from *.oml to *.owl")
 
 lazy val artifactZipFile = taskKey[File]("Location of the zip artifact file")
@@ -661,6 +663,41 @@ lazy val imce_ontologies_workflow =
         }
 
         profileGeneratorDir
+      },
+
+      setupFuseki := {
+
+        val slog = streams.value.log
+
+        val fusekiDir = baseDirectory.value / "target" / "fuseki"
+
+        if (fusekiDir.exists()) {
+          slog.warn(s"Apache jena fuseki already extracted in $fusekiDir")
+        }  else {
+          IO.createDirectory(fusekiDir)
+
+          val jfilter: DependencyFilter = new DependencyFilter {
+            def apply(c: String, m: ModuleID, a: Artifact): Boolean =
+              a.extension == "tar.gz" &&
+                m.organization.startsWith("org.apache.jena") &&
+                m.name.startsWith("apache-jena-fuseki")
+          }
+          update.value
+            .matching(jfilter)
+            .headOption
+            .fold[Unit] {
+            slog.error("Cannot find apache-jena-fuseki tar.gz!")
+          } { tgz =>
+            slog.warn(s"found: $tgz")
+            val dir = target.value / "tarball"
+            Process(Seq("tar", "--strip-components", "1", "-zxf", tgz.getAbsolutePath), Some(fusekiDir)).! match {
+              case 0 => ()
+              case n => sys.error("Error extracting " + tgz + ". Exit code: " + n)
+            }
+          }
+        }
+
+        fusekiDir
       },
 
       packageProfiles := {
