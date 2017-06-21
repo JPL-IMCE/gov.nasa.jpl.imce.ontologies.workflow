@@ -19,7 +19,8 @@ pipeline {
 		string(name: 'LOAD_FUSEKI', defaultValue: 'TRUE', description: 'Whether or not to load (validated) ontologies into a running Fuseki instance. This is equivalent to running loadprod.')
 		string(name: 'BUILD_DIGESTS', defaultValue: 'TRUE', description: 'Whether or not to build digests. This may be forced if not done previously before other, dependent steps (i.e., profile generation).')
 		string(name: 'BUILD_PROFILES', defaultValue: 'TRUE', description: 'Whether or not to generate profiles and build the profile resource.')
-		string(name: 'OML_REPO', defaultValue: 'undefined', description: 'Repository where OML data to be converted is stored.')
+		string(name: 'OML_REPO', defaultValue: 'undefined', description: 'Repository where OML / OWL data to be converted is stored.')
+		string(name: 'OML_REPO_BRANCH', defaultValue: 'master', description: 'Branch to use for OML / OWL data.')
 	}
 
 	stages {
@@ -68,7 +69,7 @@ pipeline {
 
 				// TODO Move cloning to checkout stage?
 				sh "rm -rf target/ontologies"	// Need to make sure it's empty before cloning
-				sh "mkdir -p target/ontologies; cd target/ontologies; git clone ${OML_REPO} ."
+				sh "mkdir -p target/ontologies; cd target/ontologies; git clone ${OML_REPO} .; git checkout ${OML_REPO_BRANCH}"
 
 				// Invoke the convertOntologies SBT task
 				//sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} convertOntologies"
