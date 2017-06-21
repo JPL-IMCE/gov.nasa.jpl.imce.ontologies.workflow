@@ -68,8 +68,8 @@ pipeline {
 				echo "Converting OML to OWL..."
 
 				// TODO Move cloning to checkout stage?
-				sh "rm -rf target/ontologies"	// Need to make sure it's empty before cloning
-				sh "mkdir -p target; cd target; git clone ${OML_REPO} .; git checkout ${OML_REPO_BRANCH}"
+				sh "rm -rf target/ontologies; rm -rf target/ontologies.git"	// Need to make sure it's empty before cloning
+				sh "mkdir -p target/ontologies.git; cd target/ontologies.git; git clone ${OML_REPO} .; git checkout ${OML_REPO_BRANCH}; cd ..; ln -nsf ontologies.git/ontologies ontologies"
 
 				// Invoke the convertOntologies SBT task
 				//sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} convertOntologies"
