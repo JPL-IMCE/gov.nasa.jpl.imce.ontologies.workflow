@@ -1,5 +1,5 @@
-import sbt.Keys._
-import sbt._
+import sbt.Keys.{baseDirectory, _}
+import sbt.{File, _}
 
 import scala.io.Source
 import spray.json.{DefaultJsonProtocol, _}
@@ -56,6 +56,8 @@ lazy val artifactZipFile = taskKey[File]("Location of the zip artifact file")
 lazy val setupProfileGenerator = taskKey[File]("Location of the profile generator directory extracted from dependencies")
 
 lazy val packageProfiles = taskKey[File]("Location of the generated profiles")
+
+lazy val downloadOMLConverter = taskKey[PathFinder]("Download & install the OML Converter; if the OML libraries are needed for compilation, add `unmanagedJars in Compile := downloadOMLConverter.value.classpath`")
 
 lazy val imce_ontologies_workflow =
   Project("gov-nasa-jpl-imce-ontologies-workflow", file("."))
@@ -155,14 +157,8 @@ lazy val imce_ontologies_workflow =
         "gov.nasa.jpl.imce"
           %% "gov.nasa.jpl.imce.profileGenerator.batch"
           % "0.2.2"
-          % "test" classifier "tests",
+          % "test" classifier "tests"
 
-        "gov.nasa.jpl.imce"
-          % "gov.nasa.jpl.imce.oml.converters"
-          //% "0.1.0.1" artifacts Artifact("gov.nasa.jpl.imce.oml.converters", "tgz", "tgz") from
-          % "0.1.0.2" artifacts Artifact("gov.nasa.jpl.imce.oml.converters", "tar", "tar") from
-          "file:///Users/sherzig/Downloads/gov-nasa-jpl-imce-oml-converters-0.1.0.2.tar"
-          //"https://cae-artifactory.jpl.nasa.gov/artifactory/maven-libs-release-local/gov/nasa/jpl/imce/gov.nasa.jpl.imce.oml.converters/0.1.0.1/gov.nasa.jpl.imce.oml.converters-0.1.0.1.tgz"
       ),
 
       // Avoid unresolvable dependencies from old versions of log4j
@@ -613,8 +609,10 @@ lazy val imce_ontologies_workflow =
         val ontologiesDir = baseDirectory.value / "target" / "ontologies"
         val omlCatalog = ontologiesDir / "oml.catalog.xml"
         val omlFiles = (ontologiesDir ** "*.oml") pair relativeTo(ontologiesDir)
+
         // TODO add '.bat' if running on windows...
-        val omlConverterBin = baseDirectory.value / "target" / "tools" / "omlConverter" / "bin" / "omlConverter"
+        downloadOMLConverter.value
+        val omlConverterBin = baseDirectory.value / "target" / "omlConverter" / "bin" / "omlConverter"
         if (omlConverterBin.exists()) {
 
           val args: Seq[String] = Seq(omlConverterBin.toString, "-cat", omlCatalog.toString) ++ omlFiles.map(_._1.toString)
@@ -661,6 +659,62 @@ lazy val imce_ontologies_workflow =
         }
 
         profileGeneratorDir
+      },
+
+      downloadOMLConverter := {
+
+        val omlDir: File = baseDirectory.value / "target" / "omlConverter"
+
+        import scalaz.{\/,-\/,\/-}
+        import scalaz.concurrent.Task
+
+        val slog = streams.value.log
+
+        val start = coursier.Resolution(
+          Set(
+            coursier.Dependency(
+              coursier.Module("gov.nasa.jpl.imce", "gov.nasa.jpl.imce.oml.converters_2.11"),
+              "0.1.2.0"
+            )
+          )
+        )
+
+        val repositories = Seq(
+          coursier.MavenRepository("https://dl.bintray.com/jpl-imce/gov.nasa.jpl.imce")
+        )
+
+        val fetch = coursier.Fetch.from(repositories, coursier.Cache.fetch())
+
+        val resolution = start.process.run(fetch).unsafePerformSync
+
+        val localArtifacts: Seq[coursier.FileError \/ File] = Task.gatherUnordered(
+          resolution
+            .classifiersArtifacts(Seq("resource"))
+            .flatMap {
+              case a if
+              a.url.contains("gov.nasa.jpl.imce.oml.converters") &&
+                a.url.endsWith("-resource.tgz") =>
+                Some(coursier.Cache.file(a).run)
+              case a =>
+                None
+            }
+        ).unsafePerformSync
+
+        localArtifacts.foreach {
+          case -\/(fileError) =>
+            slog.error(fileError.describe)
+          case \/-(file) =>
+            if (!omlDir.exists) {
+              omlDir.mkdirs()
+              slog.info(s"Installing OML Converter from local artifact: $file")
+              s"tar --strip-components 1 -C $omlDir -zxvf $file" !
+            }
+
+        }
+
+        val jars = omlDir / "lib" ** "*.jar"
+
+        jars
       },
 
       packageProfiles := {
