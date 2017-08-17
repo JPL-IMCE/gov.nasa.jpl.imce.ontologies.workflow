@@ -45,8 +45,6 @@ FUSEKI_S_PUT ?= $(FUSEKI_BIN)/s-put
 GET_CM_DATE ?= git log -n 1 --format=%ci
 GET_CM_REVISION ?= git log -n 1 --format=%h
 
-IMCE_LOCAL_CATALOG ?= $(ONTOLOGIES)/imce.local.catalog.xml
-IMCE_LOCAL_CATALOG_ARTIFACT ?= artifacts/ontologies/$(IMCE_LOCAL_CATALOG)
 IMPORTS_GRAPH ?= $(JRUBY_CMD) $(TOOLS)/tools/imports-graph-jena
 IMPORTS_GRAPH_OPTS ?= --prefix-file $(PREFIX_FILE)
 IMPORTS_GRAPH_FILE ?= artifacts/imports-graph.yaml
@@ -113,28 +111,28 @@ XSLTPROC ?= xsltproc
 # W3C ONTOLOGIES
 #
 
-w3_parts = []
+# w3_parts = []
 
-w3_parts << OntologyPart.new('www.w3.org/2001', 'XMLSchema', 'xsd')
-w3_parts << OntologyPart.new('www.w3.org/1999/02', '22-rdf-syntax-ns', 'rdf').ontology_artifact_only = true
-w3_parts << OntologyPart.new('www.w3.org/2000/01', 'rdf-schema', 'rdfs').ontology_artifact_only = true
-w3_parts << OntologyPart.new('www.w3.org/2002/07', 'owl').ontology_artifact_only = true
-w3_parts << OntologyPart.new('www.w3.org/2003/g', 'data-view').ontology_artifact_only = true
-w3_parts << OntologyPart.new('www.w3.org/2003/11', 'swrl').ontology_artifact_only = true
+# w3_parts << OntologyPart.new('www.w3.org/2001', 'XMLSchema', 'xsd')
+# w3_parts << OntologyPart.new('www.w3.org/1999/02', '22-rdf-syntax-ns', 'rdf').ontology_artifact_only = true
+# w3_parts << OntologyPart.new('www.w3.org/2000/01', 'rdf-schema', 'rdfs').ontology_artifact_only = true
+# w3_parts << OntologyPart.new('www.w3.org/2002/07', 'owl').ontology_artifact_only = true
+# w3_parts << OntologyPart.new('www.w3.org/2003/g', 'data-view').ontology_artifact_only = true
+# w3_parts << OntologyPart.new('www.w3.org/2003/11', 'swrl').ontology_artifact_only = true
 
 #
 # DUBLIN CORE ONTOLOGIES
 #
 
-dc_parts = []
+# dc_parts = []
 
-dc_parts << OntologyPart.new('purl.org/dc/elements', '1.1', 'dc', '/').ontology_artifact_only = true
+# dc_parts << OntologyPart.new('purl.org/dc/elements', '1.1', 'dc', '/').ontology_artifact_only = true
 
 # IMCE OMF ONTOLOGY
 
-omf_parts = []
+# omf_parts = []
 
-omf_parts << OntologyPart.new('imce.jpl.nasa.gov/foundation/omf', 'omf').ontology_artifact_only = true
+# omf_parts << OntologyPart.new('imce.jpl.nasa.gov/foundation/omf', 'omf').ontology_artifact_only = true
 
 #
 # OMG ONTOLOGIES
@@ -268,7 +266,7 @@ end
 
 # scenario
 
-include_imce_scenario_group = true
+include_imce_scenario_group = false
 if include_imce_scenario_group && include_imce_behavior_group
   path = 'imce.jpl.nasa.gov/foundation/scenario'
   stem = 'scenario'
@@ -281,11 +279,11 @@ end
 # project
 
 include_imce_project_group = true
-if include_imce_project_group && include_imce_scenario_group
+if include_imce_project_group && include_imce_behavior_group
   path = 'imce.jpl.nasa.gov/foundation/project'
   stem = 'project'
   imce_project_group = ImceOntologyGroup.new(path, stem)
-  imce_project_group.depends_on(imce_scenario_group)
+  imce_project_group.depends_on(imce_behavior_group)
   imce_project_group << OntologyPart.new(path, stem)
   imce_project_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
@@ -409,7 +407,6 @@ imce_project_bundle_groups = [
 	imce_analysis_group,
 	imce_project_group,
 	imce_behavior_group,
-	imce_scenario_group,
 	imce_fault_management_group,
 	imce_vandv_group ]
 if include_imce_project_bundle
@@ -521,7 +518,6 @@ imports-graph: $(IMPORTS_GRAPH_FILE)
 
 define do_imports_graph
   @echo imports graph
-  @echo $(dir $@)
   @mkdir -p $(dir $@)
   @$(IMPORTS_GRAPH) $(IMPORTS_GRAPH_OPTS) \
   	--bundles $(WORKFLOW)/<%= OntologyBundle.serialization_file %> \
@@ -1007,25 +1003,8 @@ $(PREFIXES_PRODUCTION_SENTINEL): $(PREFIX_FILE)
 
 .PHONY:	artifacts
 
-artifacts:	digests ontology-artifacts entailments-artifacts closure-artifacts imce-local-catalog imports-graph
+artifacts:	digests ontology-artifacts entailments-artifacts closure-artifacts imports-graph
 
-#
-# imce-local-catalog
-#
-
-.PHONY: imce-local-catalog
-
-define do_local_catalog_artifact
-  @echo ontology artifact '->' $@
-  @mkdir -p $(dir $@)
-  @cp $< $@
-endef
-
-imce-local-catalog:	$(IMCE_LOCAL_CATALOG_ARTIFACT)
-
-$(IMCE_LOCAL_CATALOG_ARTIFACT):	$(IMCE_LOCAL_CATALOG)
-	$(call do_local_catalog_artifact)
-	
 #
 # clear-repos
 #
@@ -1100,4 +1079,4 @@ clean:
 	
 	@echo clean other files
 	@rm -f $(IMPORTS_GRAPH_FILE) $(DEPENDENCIES_FILE) $(XML_TEST_FILE) $(OWL_TEST_FILE)
-	@rm -f $(VALIDATION_DEPENDENCIES_FILE) $(IMCE_LOCAL_CATALOG_ARTIFACT)
+	@rm -f $(VALIDATION_DEPENDENCIES_FILE)
