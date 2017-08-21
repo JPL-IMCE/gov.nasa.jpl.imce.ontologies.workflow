@@ -16,7 +16,8 @@ pipeline {
 		string(name: 'VERSION_PROFILES', defaultValue: '{env.BUILD_TAG}', description: 'The version of the profile resource to produce.')
 
 		/* What to perform during build */
-		string(name: 'LOAD_FUSEKI', defaultValue: 'TRUE', description: 'Whether or not to load (validated) ontologies into a running Fuseki instance. This is equivalent to running loadprod.')
+		string(name: 'BOOTSTRAP_BUILDS', defaultValue: 'TRUE', description: 'Whether or not to bootstrap subsequent builds and calculate dependencies. It makes no sense to skip this step.')
+		string(name: 'VALIDATE_ONTOLOGIES', defaultValue: 'TRUE', description: 'Whether or not to validate ontologies. It has a side effect of loading ontologies into Fuseki.')
 		string(name: 'BUILD_DIGESTS', defaultValue: 'TRUE', description: 'Whether or not to build digests. This may be forced if not done previously before other, dependent steps (i.e., profile generation).')
 		string(name: 'BUILD_PROFILES', defaultValue: 'TRUE', description: 'Whether or not to generate profiles and build the profile resource.')
 		string(name: 'OML_REPO', defaultValue: 'undefined', description: 'Repository where OML data to be converted is stored.')
@@ -76,15 +77,30 @@ pipeline {
 			}
 		}
 
-		stage('Pre-Process Ontologies') {
+		stage('Bootstrap Builds') {
 			when {
-				expression { params.LOAD_FUSEKI == 'TRUE' }
+				expression { params.BOOTSTRAP_BUILDS == 'TRUE' }
+			}
+			steps {
+				echo "Bootstrapping builds..."
+
+				sh "cd workflow; . env.sh; /usr/bin/make bootstrap"
+				sh "cd workflow; . env.sh; /usr/bin/make validation-dependencies"
+				// run makefile command, same for others below
+			}
+		}
+
+		stage('Validate Ontologies') {
+			when {
+				expression { params.VALIDATE_ONTOLOGIES == 'TRUE' }
 			}
 			steps {
 				echo "Validating ontologies and loading into Fuseki..."
 
-				sh "cd workflow; . env.sh; /usr/bin/make dependencies"
-				sh "cd workflow; . env.sh; /usr/bin/make loadprod"
+				sh "cd workflow; . env.sh; /usr/bin/make validate-xml"
+				sh "cd workflow; . env.sh; /usr/bin/make validate-owl"
+				sh "cd workflow; . env.sh; /usr/bin/make validate-groups"
+				sh "cd workflow; . env.sh; /usr/bin/make validate-bundles"
 				// run makefile command, same for others below
 			}
 		}
