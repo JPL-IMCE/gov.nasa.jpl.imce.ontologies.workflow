@@ -10,7 +10,8 @@ export WORKFLOW_SOURCES=$(dirname $(pwd))/workflow
 export ONTOLOGIES=$(dirname $(pwd))/target/ontologies
 
 # Read-only
-export FUSEKI_HOME=$(dirname $(pwd))/target/fuseki
+FUSEKI_PROJ=$(dirname $(dirname $(pwd)))/gov.nasa.jpl.imce.ontologies.fuseki
+export FUSEKI_HOME=$FUSEKI_PROJ/target/fuseki
 
 export FUSEKI_BIN="${FUSEKI_HOME}/bin"
 
@@ -51,7 +52,6 @@ $TOOLS/lib/OMFMetadata
 # && exit -1
 
 [ -z "$JRUBY" ] && export JRUBY=$(which jruby)
-echo "# JRUBY=$JRUBY"
 
 export GEM_PATH="${GEM_HOME}:$(dirname $(pwd))"
 
