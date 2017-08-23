@@ -79,13 +79,13 @@ PREFIXES_PRODUCTION_SENTINEL ?= .production/"$(PREFIX_FILE)"
 
 REIFICATION_REFACTORING_AUDIT ?= "$(AUDITS)"/non-recurring/no-non-derived-object-property-is-reified-by-a-property-chain.rb
 RUBY ?= ruby
-RUBY_CMD ?= "$(RUBY)"
+RUBY_CMD ?= $(RUBY)
 RUBYLIB ?= 
-RUN_AUDITS ?= "$(JRUBY_CMD)" "$(TOOLS)"/tools/run-audits-jena
+RUN_AUDITS ?= $(JRUBY_CMD) "$(TOOLS)"/tools/run-audits-jena
 RUN_AUDITS_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset "$(JENA_DATASET)" \
                    --prefix-file "$(PREFIX_FILE)" --imports-file "$(IMPORTS_GRAPH_FILE)"
 
-UPDATE_METADATA ?= "$(JRUBY_CMD)" "$(TOOLS)"/tools/update-metadata
+UPDATE_METADATA ?= $(JRUBY_CMD) "$(TOOLS)"/tools/update-metadata
 UPDATE_METADATA_OPTS ?= 
 
 VALIDATE_BUNDLE_TREE_IMCE ?= "$(AUDITS)"/bundle/imce
@@ -93,7 +93,7 @@ VALIDATE_BUNDLE_TREE_OMG ?= "$(AUDITS)"/bundle/omg
 VALIDATE_GROUP_TREE_ALL ?= "$(AUDITS)"/group/all
 VALIDATE_GROUP_TREE_NO_EMBEDDING ?= "$(AUDITS)"/group/all/no-embedding
 VALIDATE_GROUP_TREE_NO_FULL_REIFICATION ?= "$(AUDITS)"/group/all/no-embedding/no-full-reification
-VALIDATE_OWL ?= "$(JRUBY_CMD)" -J-Djava.util.logging.config.file=logging.properties "$(TOOLS)"/tools/validate-owl
+VALIDATE_OWL ?= $(JRUBY_CMD) -J-Djava.util.logging.config.file=logging.properties "$(TOOLS)"/tools/validate-owl
 VALIDATE_OWL_OPTS ?= --satisfiability
 VALIDATE_XML ?= "$(TOOLS)"/tools/validate-xml
 VALIDATE_XML_OPTS ?= 

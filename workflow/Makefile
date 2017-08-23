@@ -16,10 +16,10 @@ MAKE_MAKEFILE ?= $(TOOLS)/tools/make-makefile
 SBT ?= sbt
 
 clean:
-	/bin/rm -rf $(WORKFLOW)
-	mkdir $(WORKFLOW)
-	mkdir $(WORKFLOW)/artifacts
-	mkdir $(WORKFLOW)/log
+	/bin/rm -rf "$(WORKFLOW)"
+	mkdir "$(WORKFLOW)"
+	mkdir "$(WORKFLOW)"/artifacts
+	mkdir "$(WORKFLOW)"/log
 
 
 # Copy required files, and create directory target/workflow in the process
@@ -41,7 +41,7 @@ bootstrap: $(WORKFLOW)/Makefile $(WORKFLOW)/.symlinks
 
 $(WORKFLOW)/Makefile: $(WORKFLOW_SOURCES)/Makefile.erb $(WORKFLOW)/logging.properties $(WORKFLOW)/log4j.properties $(WORKFLOW)/Makefile.erb
 	@echo $< '->' "$@"
-	(cd "$(WORKFLOW)"; "$(JRUBY_CMD)" "$(MAKE_MAKEFILE)" "$<" > "$@.tmp") && mv "$@.tmp" "$@"
+	(cd "$(WORKFLOW)"; $(JRUBY_CMD) "$(MAKE_MAKEFILE)" "$<" > "$@.tmp") && mv "$@.tmp" "$@"
 
 $(WORKFLOW)/.symlinks:
 	ln -s "$(ONTOLOGIES)"/* "$(WORKFLOW)"
