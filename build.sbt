@@ -243,8 +243,10 @@ lazy val imce_ontologies_workflow =
 
           val imceSetup = mdInstallDir / "bin" / "magicdraw.imce.setup.sh"
           if (imceSetup.exists()) {
-            val setup = sbt.Process(command = "/bin/bash", arguments = Seq[String](imceSetup.getAbsolutePath)).!
-            require(0 == setup, s"IMCE MD Setup error! ($setup)")
+            require(imceSetup.setExecutable(true), s"Failed to set the executable flag on ${imceSetup.getAbsolutePath}")
+            s.log.info(s"*** Executing bin/magicdraw.imce.setup.sh ...")
+            val setup = sbt.Process(command = Seq("/bin/bash", imceSetup.getAbsolutePath), cwd = mdInstallDir / "bin").!
+            require(0 == setup, s"Failed to execute the IMCE MD Setup (${imceSetup.getAbsolutePath}): (status=$setup)")
             s.log.info(s"*** Executed bin/magicdraw.imce.setup.sh script")
           } else {
             s.log.info(s"*** No bin/magicdraw.imce.setup.sh script found!")
@@ -505,14 +507,6 @@ lazy val imce_ontologies_workflow =
                 m.name.startsWith("docbook-xsl")
           }
 
-          val cfilter: DependencyFilter = new DependencyFilter {
-            def apply(c: String, m: ModuleID, a: Artifact): Boolean =
-              //a.extension == "tgz" &&
-              a.extension == "tar" &&
-                m.organization.startsWith("gov.nasa.jpl.imce") &&
-                m.name.startsWith("gov.nasa.jpl.imce.oml.converters")
-          }
-
           update.value
             .matching(tfilter)
             .headOption
@@ -533,22 +527,6 @@ lazy val imce_ontologies_workflow =
             IO.unzip(zip, toolsDir)
             slog.warn(s"Extracted docbook-xsl from ${zip.name}")
             slog.warn(s"Docbook in: $toolsDir")
-          }
-
-          update.value
-            .matching(cfilter)
-            .headOption
-            .fold[Unit] {
-            slog.error("Cannot find the oml.converters zip!")
-          } { tgz =>
-            val omlConverterDir = toolsDir / "omlConverter"
-            IO.createDirectory(omlConverterDir)
-            Process(Seq("tar", "--strip-components", "1", "-zxf", tgz.getAbsolutePath), Some(omlConverterDir)).! match {
-              case 0 => ()
-              case n => sys.error("Error extracting " + tgz + ". Exit code: " + n)
-            }
-            slog.warn(s"Extracted oml.converters from ${tgz.name}")
-            slog.warn(s"oml.converter in: $omlConverterDir")
           }
 
         }
