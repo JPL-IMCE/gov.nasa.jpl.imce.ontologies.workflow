@@ -50,16 +50,6 @@ pipeline {
 			}
 		}
 
-		stage('Compile') {
-			steps {
-				echo "Compiling workflow unit..."
-
-				// Thanks to https://gist.github.com/muuki88/e2824008b653ac0fc5ba749fdf249616 for this one!
-				sh "sbt -Dproject.version=${params.VERSION_PROFILES} compile test:compile"
-				//archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
-			}
-		}
-
 		stage('OML to OWL') {
 			when {
 				expression { params.OML_REPO != 'undefined' }
@@ -113,6 +103,16 @@ pipeline {
 				echo "Generating digests..."
 
 				sh "cd workflow; . env.sh; /usr/bin/make digests"
+			}
+		}
+
+		stage('Compile Profile Generator') {
+			steps {
+				echo "Compiling workflow unit..."
+
+				// Thanks to https://gist.github.com/muuki88/e2824008b653ac0fc5ba749fdf249616 for this one!
+				sh "sbt -Dproject.version=${params.VERSION_PROFILES} compile test:compile"
+				//archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
 
