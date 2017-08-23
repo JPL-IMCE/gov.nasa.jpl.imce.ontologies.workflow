@@ -366,7 +366,9 @@ lazy val imce_ontologies_workflow =
             s"files extracted from zip: $pas")
 
         val mdProperties = new java.util.Properties()
-        IO.load(mdProperties, md_install_dir / "bin" / "magicdraw.properties")
+
+        val prop_dir = md_install_dir / "bin" / "magicdraw.properties"
+        IO.load(mdProperties, prop_dir)
 
         s.log.warn(
           s"=> Read properties file from ${md_install_dir / "bin" / "magicdraw.properties"}")
