@@ -74,8 +74,8 @@ pipeline {
 			steps {
 				echo "Bootstrapping builds..."
 
-				sh "cd workflow; . env.sh; /usr/bin/make bootstrap"
-				sh "cd workflow; . env.sh; /usr/bin/make validation-dependencies"
+				sh "cd workflow; source ./env.sh; /usr/bin/make bootstrap"
+				sh "cd workflow; source ./env.sh; /usr/bin/make validation-dependencies"
 				// run makefile command, same for others below
 			}
 		}
@@ -87,10 +87,10 @@ pipeline {
 			steps {
 				echo "Validating ontologies and loading into Fuseki..."
 
-				sh "cd workflow; . env.sh; /usr/bin/make validate-xml"
-				sh "cd workflow; . env.sh; /usr/bin/make validate-owl"
-				sh "cd workflow; . env.sh; /usr/bin/make validate-groups"
-				sh "cd workflow; . env.sh; /usr/bin/make validate-bundles"
+				sh "cd workflow; source ./env.sh; /usr/bin/make validate-xml"
+				sh "cd workflow; source ./env.sh; /usr/bin/make validate-owl"
+				sh "cd workflow; source ./env.sh; /usr/bin/make validate-groups"
+				sh "cd workflow; source ./env.sh; /usr/bin/make validate-bundles"
 				// run makefile command, same for others below
 			}
 		}
@@ -102,7 +102,7 @@ pipeline {
 			steps {
 				echo "Generating digests..."
 
-				sh "cd workflow; . env.sh; /usr/bin/make digests"
+				sh "cd workflow; source ./env.sh; /usr/bin/make digests"
 			}
 		}
 
@@ -133,7 +133,7 @@ pipeline {
 				 */
 				//sh ' || true'
 
-				sh "cd workflow; . env.sh; /usr/bin/make profiles"
+				sh "cd workflow; source ./env.sh; /usr/bin/make profiles"
 				junit '**/target/*.xml'
 			}
 		}
