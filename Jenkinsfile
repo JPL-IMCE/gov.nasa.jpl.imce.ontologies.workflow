@@ -2,7 +2,7 @@
 
 pipeline {
 	/* Agent directive is required. */
-	agent any
+	agent imce-infr-dev-01.jpl.nasa.gov
 
 	/* The following is NOT supported currently! (see below for a workaround) */
 //	tools {
