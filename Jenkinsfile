@@ -37,7 +37,7 @@ pipeline {
 
 				sh "env"
 
-				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} setupTools"
+				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupTools"
 
 				// Decrypt files
 				// TODO Add OpenSSL installation as prerequisite to readme?
@@ -55,7 +55,7 @@ pipeline {
 				echo "Compiling workflow unit..."
 
 				// Thanks to https://gist.github.com/muuki88/e2824008b653ac0fc5ba749fdf249616 for this one!
-				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} compile test:compile"
+				sh "sbt -Dproject.version=${params.VERSION_PROFILES} compile test:compile"
 				//archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
@@ -72,8 +72,8 @@ pipeline {
 				sh "mkdir -p target/ontologies; cd target/ontologies; git clone ${OML_REPO} ."
 
 				// Invoke the convertOntologies SBT task
-				//sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} setupOMLConverter"
-				//sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} convertOntologies"
+				//sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupOMLConverter"
+				//sh "sbt -Dproject.version=${params.VERSION_PROFILES} convertOntologies"
 			}
 		}
 
@@ -142,7 +142,7 @@ pipeline {
 			steps {
 				echo "Building profile resource..."
 
-				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} packageProfiles"
+				sh "sbt -Dproject.version=${params.VERSION_PROFILES} packageProfiles"
 			}
 		}
 
@@ -161,7 +161,7 @@ pipeline {
 			}
 			steps {
 				sh 'scripts/jenkins-deploy.sh'
-				//sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} publish"
+				//sh "sbt -Dproject.version=${params.VERSION_PROFILES} publish"
 				//sh 'scripts/jenkins-publish.sh'
 			}
 		}
