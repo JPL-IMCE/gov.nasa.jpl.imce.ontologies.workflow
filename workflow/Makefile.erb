@@ -10,61 +10,61 @@
 #    All rights reserved.
 #
 
-tmpfile = "$(dir "$1")"."$(notdir "$1")"
+tmpfile = $(dir $1).$(notdir $1)
 today := $(shell date +%Y/%m/%d)
 
 BACKBONE_DISJOINTS ?= Entity ReifiedObjectProperty ReifiedStructuredDataProperty StructuredDatatype
 BACKBONE_PREFIX ?= http://imce.jpl.nasa.gov/backbone/
 
 CI_REVISION_NUMBER ?= [unknown]
-CLOSE_BUNDLE ?= "$(JRUBY_CMD)" "$(TOOLS)"/tools/close-bundle
+CLOSE_BUNDLE ?= $(JRUBY_CMD) $(TOOLS)/tools/close-bundle
 CLOSE_BUNDLE_OPTS ?= 
 CP ?= cp -p
 
-DEPENDENCIES ?= "$(JRUBY_CMD)" "$(TOOLS)"/tools/dependencies $(DEPENDENCIES_OPTS)
+DEPENDENCIES ?= $(JRUBY_CMD) $(TOOLS)/tools/dependencies $(DEPENDENCIES_OPTS)
 DEPENDENCIES_OPTS ?= 
 DEPENDENCIES_FILE ?= .dependencies
 # Used to be -Ru (unsupported on MacOSX)
 DIRCP ?= cp -R
 
 # Used to be entail-pellet
-ENTAIL ?= "$(JRUBY_CMD)" -J-Djava.util.logging.config.file=logging.properties "$(TOOLS)"/tools/entail
+ENTAIL ?= $(JRUBY_CMD) -J-Djava.util.logging.config.file=logging.properties $(TOOLS)/tools/entail
 ENTAIL_OPTS = 
 
-EXTRACT_JENA ?= "$(JRUBY_CMD)" "$(TOOLS)"/tools/extract-jena
-EXTRACT_JENA_OPTS ?= --imports-file "$(IMPORTS_GRAPH_FILE)" --prefix-file "$(PREFIX_FILE)"
+EXTRACT_JENA ?= $(JRUBY_CMD) $(TOOLS)/tools/extract-jena
+EXTRACT_JENA_OPTS ?= --imports-file $(IMPORTS_GRAPH_FILE) --prefix-file $(PREFIX_FILE)
 
-FORM_IMPORTS_CLOSURE ?= "$(JRUBY_CMD)" "$(TOOLS)"/tools/form-imports-closure
+FORM_IMPORTS_CLOSURE ?= $(JRUBY_CMD) $(TOOLS)/tools/form-imports-closure
 FORM_IMPORTS_CLOSURE_OPTS ?= 
 
-FUSEKI_S_DELETE ?= "$(FUSEKI_BIN)"/s-delete
-FUSEKI_S_GET ?= "$(FUSEKI_BIN)"/s-get
-FUSEKI_S_PUT ?= "$(FUSEKI_BIN)"/s-put
+FUSEKI_S_DELETE ?= $(FUSEKI_BIN)/s-delete
+FUSEKI_S_GET ?= $(FUSEKI_BIN)/s-get
+FUSEKI_S_PUT ?= $(FUSEKI_BIN)/s-put
 
 # TODO needs to retrieve the info from the ontologies.public maven artifact or the symlink to the local ontologies dir.
 GET_CM_DATE ?= git log -n 1 --format=%ci
 GET_CM_REVISION ?= git log -n 1 --format=%h
 
-IMPORTS_GRAPH ?= "$(JRUBY_CMD)" "$(TOOLS)"/tools/imports-graph-jena
-IMPORTS_GRAPH_OPTS ?= --prefix-file "$(PREFIX_FILE)"
+IMPORTS_GRAPH ?= $(JRUBY_CMD) $(TOOLS)/tools/imports-graph-jena
+IMPORTS_GRAPH_OPTS ?= --prefix-file $(PREFIX_FILE)
 IMPORTS_GRAPH_FILE ?= artifacts/imports-graph.yaml
-IMPORTS_PRODUCTION_SENTINEL ?= .production/"$(IMPORTS_GRAPH_FILE)"
+IMPORTS_PRODUCTION_SENTINEL ?= .production/$(IMPORTS_GRAPH_FILE)
 
 JRUBY ?= jruby
 JRUBY_CMD ?= $(JRUBY) --headless -J-Xmx1024m
 
-LOAD_PREFIXES ?= "$(JRUBY_CMD)" "$(TOOLS)"/tools/load-prefixes-jena
-LOAD_PREFIXES_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset "$(JENA_DATASET)" \
-                      --prefix-file "$(PREFIX_FILE)"
+LOAD_PREFIXES ?= $(JRUBY_CMD) $(TOOLS)/tools/load-prefixes-jena
+LOAD_PREFIXES_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset $(JENA_DATASET) \
+                      --prefix-file $(PREFIX_FILE)
 LOG4J_CONFIG_FILE ?= 'log4j.properties'
 
-MAKE_CATALOGS ?= "$(TOOLS)"/tools/make-catalogs
+MAKE_CATALOGS ?= $(TOOLS)/tools/make-catalogs
 MAKE_CATALOGS_OPTS ?= 
-MAKE_MAKEFILE ?= "$(TOOLS)"/tools/make-makefile
+MAKE_MAKEFILE ?= $(TOOLS)/tools/make-makefile
 
-ONTOLOGY_DIGEST ?= "$(JRUBY_CMD)" "$(TOOLS)"/tools/ontology-digest-jena
-ONTOLOGY_DIGEST_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset "$(JENA_DATASET)" \
-                        --prefix-file "$(PREFIX_FILE)" --imports-file "$(IMPORTS_GRAPH_FILE)" \
+ONTOLOGY_DIGEST ?= $(JRUBY_CMD) $(TOOLS)/tools/ontology-digest-jena
+ONTOLOGY_DIGEST_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset $(JENA_DATASET) \
+                        --prefix-file $(PREFIX_FILE) --imports-file $(IMPORTS_GRAPH_FILE) \
                         --build-key '$(CI_BUILD_KEY)' --build-number '$(CI_BUILD_NUMBER)' --revision-number '$(CI_REVISION_NUMBER)' \
 						--xsltproc '$(XSLTPROC)' --docbook-xhtml-xsl '$(DOCBOOK_XHTML_XSL)' \
 						$(subst .,--,$(ONTOLOGY_DIGEST_EXTENSION))
@@ -75,35 +75,35 @@ ONTOLOGY_PARTS_SERIALIZED_FILE = .ontology-parts-serialized
 OWL_TEST_FILE = tests/validate-owl.xml
 
 PREFIX_FILE ?= .prefixes.yaml
-PREFIXES_PRODUCTION_SENTINEL ?= .production/"$(PREFIX_FILE)"
+PREFIXES_PRODUCTION_SENTINEL ?= .production/$(PREFIX_FILE)
 
-REIFICATION_REFACTORING_AUDIT ?= "$(AUDITS)"/non-recurring/no-non-derived-object-property-is-reified-by-a-property-chain.rb
+REIFICATION_REFACTORING_AUDIT ?= $(AUDITS)/non-recurring/no-non-derived-object-property-is-reified-by-a-property-chain.rb
 RUBY ?= ruby
 RUBY_CMD ?= $(RUBY)
 RUBYLIB ?= 
-RUN_AUDITS ?= $(JRUBY_CMD) "$(TOOLS)"/tools/run-audits-jena
-RUN_AUDITS_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset "$(JENA_DATASET)" \
-                   --prefix-file "$(PREFIX_FILE)" --imports-file "$(IMPORTS_GRAPH_FILE)"
+RUN_AUDITS ?= $(JRUBY_CMD) $(TOOLS)/tools/run-audits-jena
+RUN_AUDITS_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset $(JENA_DATASET) \
+                   --prefix-file $(PREFIX_FILE) --imports-file $(IMPORTS_GRAPH_FILE)
 
-UPDATE_METADATA ?= $(JRUBY_CMD) "$(TOOLS)"/tools/update-metadata
+UPDATE_METADATA ?= $(JRUBY_CMD) $(TOOLS)/tools/update-metadata
 UPDATE_METADATA_OPTS ?= 
 
-VALIDATE_BUNDLE_TREE_IMCE ?= "$(AUDITS)"/bundle/imce
-VALIDATE_BUNDLE_TREE_OMG ?= "$(AUDITS)"/bundle/omg
-VALIDATE_GROUP_TREE_ALL ?= "$(AUDITS)"/group/all
-VALIDATE_GROUP_TREE_NO_EMBEDDING ?= "$(AUDITS)"/group/all/no-embedding
-VALIDATE_GROUP_TREE_NO_FULL_REIFICATION ?= "$(AUDITS)"/group/all/no-embedding/no-full-reification
-VALIDATE_OWL ?= $(JRUBY_CMD) -J-Djava.util.logging.config.file=logging.properties "$(TOOLS)"/tools/validate-owl
+VALIDATE_BUNDLE_TREE_IMCE ?= $(AUDITS)/bundle/imce
+VALIDATE_BUNDLE_TREE_OMG ?= $(AUDITS)/bundle/omg
+VALIDATE_GROUP_TREE_ALL ?= $(AUDITS)/group/all
+VALIDATE_GROUP_TREE_NO_EMBEDDING ?= $(AUDITS)/group/all/no-embedding
+VALIDATE_GROUP_TREE_NO_FULL_REIFICATION ?= $(AUDITS)/group/all/no-embedding/no-full-reification
+VALIDATE_OWL ?= $(JRUBY_CMD) -J-Djava.util.logging.config.file=logging.properties $(TOOLS)/tools/validate-owl
 VALIDATE_OWL_OPTS ?= --satisfiability
-VALIDATE_XML ?= "$(TOOLS)"/tools/validate-xml
+VALIDATE_XML ?= $(TOOLS)/tools/validate-xml
 VALIDATE_XML_OPTS ?= 
 VALIDATION_DEPENDENCIES_FILE ?= .validation-dependencies
 
 XML_TEST_FILE = tests/validate-xml.xml
 XSLTPROC ?= xsltproc
 
--include "$(DEPENDENCIES_FILE)"
--include "$(VALIDATION_DEPENDENCIES_FILE)"
+-include $(DEPENDENCIES_FILE)
+-include $(VALIDATION_DEPENDENCIES_FILE)
 
 <%
 
@@ -488,14 +488,14 @@ ENTAILMENT_TYPES_SERIALIZED = <%= ENTAILMENTS.keys.join(',') %>
 #
 
 define do_dependencies
-  @echo dependencies '->' "$(1)"
+  @echo dependencies '->' $(1)
   @$(DEPENDENCIES) $(DEPENDENCIES_OPTS) \
   	--parts $(WORKFLOW)/<%= OntologyPart.serialization_file %> \
     --groups $(WORKFLOW)/<%= OntologyGroup.serialization_file %> \
     --bundles $(WORKFLOW)/<%= OntologyBundle.serialization_file %> \
     --types '$(ENTAILMENT_TYPES_SERIALIZED)' \
-    --imports-file "$(IMPORTS_GRAPH_FILE)" "$(2)" \
-    > "$(call tmpfile,"$(1)")" && mv "$(call tmpfile,"$(1)")" "$(1)"
+    --imports-file $(IMPORTS_GRAPH_FILE) $(2) \
+    > $(call tmpfile,$(1)) && mv $(call tmpfile,$(1)) $(1)
 endef
 
 .PHONY:	dependencies
@@ -518,12 +518,12 @@ imports-graph: $(IMPORTS_GRAPH_FILE)
 
 define do_imports_graph
   @echo imports graph
-  @mkdir -p "$(dir "$@")"
+  @mkdir -p $(dir $@)
   @$(IMPORTS_GRAPH) $(IMPORTS_GRAPH_OPTS) \
   	--bundles $(WORKFLOW)/<%= OntologyBundle.serialization_file %> \
   	--parts $(WORKFLOW)/<%= OntologyPart.serialization_file %> \
-  	$(1) > "$(call tmpfile,"$@")" && \
-    (( test -f "$@" && cmp -s "$@" "$(call tmpfile,"$@")" ) || mv "$(call tmpfile,"$@")" "$@")
+  	$(1) > $(call tmpfile,$@) && \
+    (( test -f $@ && cmp -s $@ $(call tmpfile,$@) ) || mv $(call tmpfile,$@) $@)
 endef
 
 <%=
@@ -592,9 +592,9 @@ load-production:	load-entailments-production
 #
 
 define do_entailments
-  @echo entail '->' "$@"
-  @mkdir -p "$(dir "$@")"
-  @"$(ENTAIL)" $(ENTAIL_OPTS) --input-iri $(1) --output-iri $(2) --types $(3) $(4) "$^" > "$(call tmpfile,"$@")" && mv "$(call tmpfile,"$@")" "$@"
+  @echo entail '->' $@
+  @mkdir -p $(dir $@)
+  @$(ENTAIL) $(ENTAIL_OPTS) --input-iri $(1) --output-iri $(2) --types $(3) $(4) $^ > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
 endef
 
 <%=
@@ -618,8 +618,8 @@ endef
 
 define do_validate_xml
   @echo validate xml
-  @mkdir -p "$(dir "$@")"
-  @$(RUBY_CMD) $(VALIDATE_XML) $(VALIDATE_XML_OPTS) "$^" > "$(call tmpfile,"$@")" && mv "$(call tmpfile,"$@")" "$@"
+  @mkdir -p $(dir $@)
+  @$(RUBY_CMD) $(VALIDATE_XML) $(VALIDATE_XML_OPTS) $^ > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
 endef
 
 <%=
@@ -642,19 +642,19 @@ endef
 .PHONY:	ontology-artifacts
 
 define do_copy_ontology_artifact
-  @echo ontology artifact '->' "$@"
-  @mkdir -p "$(dir "$@")"
-  @$(CP) "$<" "$@"
+  @echo ontology artifact '->' $@
+  @mkdir -p $(dir $@)
+  @$(CP) $< $@
 endef
 
 define do_update_ontology_artifact
-  @echo ontology artifact '->' "$@"
-  @mkdir -p "$(dir "$@")"
+  @echo ontology artifact '->' $@
+  @mkdir -p $(dir $@)
   @$(UPDATE_METADATA) $(UPDATE_METADATA_OPTS) $(2) \
     --date "`$(GET_CM_DATE) $<`" \
     --revision "`$(GET_CM_REVISION) $<`" $(1) \
-    > "$(call tmpfile,"$@")" && mv "$(call tmpfile,"$@")" "$@"
-  @for i in $$(find "$(dir "$<")" -mindepth 1 -maxdepth 1 -type d ! -name '.*'); do $(DIRCP) $$i "$(dir "$@")"; true; done
+    > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
+  @for i in $$(find $(dir $<) -mindepth 1 -maxdepth 1 -type d ! -name '.*'); do $(DIRCP) $$i $(dir $@); true; done
 endef
 
 <%=
@@ -705,9 +705,9 @@ endef
 .PHONY: validate-groups
 
 define do_validate_group
-  @echo validate group '->' "$@"
-  @mkdir -p "$(dir "$@")"
-  @$(RUN_AUDITS) $(RUN_AUDITS_OPTS) $(1) $(2) > "$(call tmpfile,"$@")" && mv "$(call tmpfile,"$@")" "$@"
+  @echo validate group '->' $@
+  @mkdir -p $(dir $@)
+  @$(RUN_AUDITS) $(RUN_AUDITS_OPTS) $(1) $(2) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
 endef
 
 <%=
@@ -738,9 +738,9 @@ endef
 .PHONY: reification-refactoring-audit
 
 define do_reification_refactoring_audit
-  @echo reification refactoring audit '->' "$@"
-  @mkdir -p "$(dir "$@")"
-  @$(RUN_AUDITS) $(RUN_AUDITS_OPTS) $(1) $(2) > "$(call tmpfile,"$@")" && mv "$(call tmpfile,"$@")" "$@"
+  @echo reification refactoring audit '->' $@
+  @mkdir -p $(dir $@)
+  @$(RUN_AUDITS) $(RUN_AUDITS_OPTS) $(1) $(2) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
 endef
 
 <%=
@@ -802,9 +802,9 @@ load-production:	load-closures-production
 .PHONY: validate-owl
 
 define do_validate_owl
-  @echo validate owl '->' "$@"
-  @mkdir -p "$(dir "$@")"
-  @$(VALIDATE_OWL) $(VALIDATE_OWL_OPTS) --id $(1) $(1) > "$@"
+  @echo validate owl '->' $@
+  @mkdir -p $(dir $@)
+  @$(VALIDATE_OWL) $(VALIDATE_OWL_OPTS) --id $(1) $(1) > $@
 endef
 
 <%=
@@ -841,9 +841,9 @@ endef
 .PHONY: validate-bundles
 
 define do_validate_bundle
-  @echo validate bundle '->' "$@"
-  @mkdir -p "$(dir "$@")"
-  @$(RUN_AUDITS) $(RUN_AUDITS_OPTS) $(1) $(2) > "$(call tmpfile,"$@")" && mv "$(call tmpfile,"$@")" "$@"
+  @echo validate bundle '->' $@
+  @mkdir -p $(dir $@)
+  @$(RUN_AUDITS) $(RUN_AUDITS_OPTS) $(1) $(2) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
 endef
 
 <%=
@@ -882,9 +882,9 @@ endef
 .PHONY: digests
 
 define do_digest
-  @echo digest "$@"
-  @mkdir -p "$(dir "$@")"
-  @$(ONTOLOGY_DIGEST) $(ONTOLOGY_DIGEST_OPTS) --name $(1) --uri $(2) --type $(3) $(4) > "$(call tmpfile,"$@")" && mv "$(call tmpfile,"$@")" "$@"
+  @echo digest $@
+  @mkdir -p $(dir $@)
+  @$(ONTOLOGY_DIGEST) $(ONTOLOGY_DIGEST_OPTS) --name $(1) --uri $(2) --type $(3) $(4) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
 endef
 
 <%=
@@ -914,14 +914,14 @@ endef
 .PHONY:	closure-artifacts
 
 define do_closure
-  @echo closure artifact '->' "$@"
-  @mkdir -p "$(dir "$@")"
+  @echo closure artifact '->' $@
+  @mkdir -p $(dir $@)
   @$(CLOSE_BUNDLE) $(CLOSE_BUNDLE_OPTS) \
     --namespace '$(3) => $(2)' \
     --namespace '$(5) => $(4)' \
     --name $(1) --uri $(2) --backbone-disjoints "$(BACKBONE_DISJOINTS)" \
     --backbone-prefix $(BACKBONE_PREFIX) \
-    $(6) > "$(call tmpfile,"$@")" && mv "$(call tmpfile,"$@")" "$@"
+    $(6) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
 endef
 
 <%=
@@ -976,8 +976,8 @@ endef
 
 define do_load
   @echo load $(5) '->' $(2) $(4)
-  @mkdir -p "$(dir "$@")"
-  @"$(RUBY)" $(FUSEKI_S_PUT) 'http://$(1):$(3)/$(2)/data' '$(4)' '$(5)' && touch "$@"
+  @mkdir -p $(dir $@)
+  @$(RUBY) $(FUSEKI_S_PUT) 'http://$(1):$(3)/$(2)/data' '$(4)' '$(5)' && touch $@
 endef
 
 #
@@ -994,8 +994,8 @@ load-prefixes: $(PREFIXES_PRODUCTION_SENTINEL)
 
 $(PREFIXES_PRODUCTION_SENTINEL): $(PREFIX_FILE)
 	@echo load prefixes
-	@mkdir -p "$(dir "$@")"
-	@"$(LOAD_PREFIXES)" $(LOAD_PREFIXES_OPTS) && touch "$@"
+	@mkdir -p $(dir $@)
+	@$(LOAD_PREFIXES) $(LOAD_PREFIXES_OPTS) && touch $@
 
 #
 # artifacts
@@ -1013,7 +1013,7 @@ artifacts:	digests ontology-artifacts entailments-artifacts closure-artifacts im
 
 define do_clear_repo
   @echo clear repo $(2) $(4)
-  @"$(RUBY)" $(FUSEKI_S_DELETE) 'http://$(1):$(3)/$(2)/data' '$(4)' > /dev/null 2>&1 || true
+  @$(RUBY) $(FUSEKI_S_DELETE) 'http://$(1):$(3)/$(2)/data' '$(4)' > /dev/null 2>&1 || true
 endef
 
 <%=
@@ -1026,7 +1026,7 @@ endef
   iris += OntologyBundle.list.map { |b| b.iri }
   iris << 'default'
   iris.each do |iri|
-    rule.cmds << %Q{$(call do_clear_repo,$(JENA_HOST),"$(JENA_DATASET)",$(JENA_PORT),#{iri})}
+    rule.cmds << %Q{$(call do_clear_repo,$(JENA_HOST),$(JENA_DATASET),$(JENA_PORT),#{iri})}
   end
   rule.cmds << "@rm -rf #{PRODUCTION_PREFIX}"
   rule
@@ -1040,7 +1040,7 @@ endef
 
 define do_catalogs
   @echo make catalogs
-  @"$(RUBY)" $(MAKE_CATALOGS) $(MAKE_CATALOGS_OPTS) "$(1)"
+  @$(RUBY) $(MAKE_CATALOGS) $(MAKE_CATALOGS_OPTS) $(1)
 endef
 
 <%=
@@ -1054,8 +1054,8 @@ endef
 #
 
 Makefile: Makefile.erb
-	@echo $< '->' "$@"
-	@"$(JRUBY_CMD)" "$(MAKE_MAKEFILE)" "$<" > ."$@" && mv ."$@" "$@"
+	@echo $< '->' $@
+	@$(JRUBY_CMD) $(MAKE_MAKEFILE) $< > .$@ && mv .$@ $@
 
 #
 # clean
@@ -1078,5 +1078,5 @@ clean:
 	@rm -rf <%= TESTS_PREFIX %>
 	
 	@echo clean other files
-	@rm -f "$(IMPORTS_GRAPH_FILE)" "$(DEPENDENCIES_FILE)" "$(XML_TEST_FILE)" "$(OWL_TEST_FILE)"
-	@rm -f "$(VALIDATION_DEPENDENCIES_FILE)"
+	@rm -f $(IMPORTS_GRAPH_FILE) $(DEPENDENCIES_FILE) $(XML_TEST_FILE) $(OWL_TEST_FILE)
+	@rm -f $(VALIDATION_DEPENDENCIES_FILE)
