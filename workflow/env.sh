@@ -1,31 +1,31 @@
 #!/bin/bash
 
 # Read-only
-export ETC="$(dirname $(pwd))/etc"
+export ETC="$(dirname "$(pwd)")/etc"
 
 # Read-only
-export WORKFLOW_SOURCES="$(dirname $(pwd))/workflow"
+export WORKFLOW_SOURCES="$(dirname "$(pwd)")/workflow"
 
 # Read-only
-export ONTOLOGIES="$(dirname $(pwd))/target/ontologies"
+export ONTOLOGIES="$(dirname "$(pwd)")/target/ontologies"
 
 # Read-only
-FUSEKI_PROJ="$(dirname $(dirname $(pwd)))/gov.nasa.jpl.imce.ontologies.fuseki"
+FUSEKI_PROJ="$(dirname $(dirname "$(pwd)"))/gov.nasa.jpl.imce.ontologies.fuseki"
 export FUSEKI_HOME="$FUSEKI_PROJ/target/fuseki"
 
 export FUSEKI_BIN="${FUSEKI_HOME}/bin"
 
 # Read-only
-export TOOLS="$(dirname $(pwd))/target/tools"
+export TOOLS="$(dirname "$(pwd)")/target/tools"
 
 # Read/write
-export WORKFLOW="$(dirname $(pwd))/target/workflow"
+export WORKFLOW="$(dirname "$(pwd)")/target/workflow"
 
 # Read/write
-export FUSEKI_BASE="$(dirname $(pwd))/target/run"
+export FUSEKI_BASE="$(dirname "$(pwd)")/target/run"
 
 # Read-only
-export AUDITS="$(dirname $(pwd))/data/Audit"
+export AUDITS="$(dirname "$(pwd)")/data/Audit"
 
 # SBT
 [ -z "$SBT" ] && export SBT=$(which sbt)
@@ -53,7 +53,7 @@ export RUBYLIB="$TOOLS/lib/Application":\
 
 [ -z "$JRUBY" ] && export JRUBY="$(which jruby)"
 
-export GEM_PATH="${GEM_HOME}:$(dirname $(pwd))"
+export GEM_PATH="${GEM_HOME}:$(dirname "$(pwd)")"
 
 export PARALLEL_MAKE_OPTS="-j8 -l16"
 
