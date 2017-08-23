@@ -245,7 +245,9 @@ lazy val imce_ontologies_workflow =
           if (imceSetup.exists()) {
             require(imceSetup.setExecutable(true), s"Failed to set the executable flag on ${imceSetup.getAbsolutePath}")
             s.log.info(s"*** Executing bin/magicdraw.imce.setup.sh ...")
-            val setup = sbt.Process(command = Seq("/bin/bash", imceSetup.getAbsolutePath), cwd = mdInstallDir / "bin").!
+            val setup = sbt.Process(
+              command = Seq(imceSetup.getAbsolutePath),
+              cwd = mdInstallDir.getAbsoluteFile).!
             require(0 == setup, s"Failed to execute the IMCE MD Setup (${imceSetup.getAbsolutePath}): (status=$setup)")
             s.log.info(s"*** Executed bin/magicdraw.imce.setup.sh script")
           } else {
