@@ -37,7 +37,7 @@ pipeline {
 
 				sh "env"
 
-				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupTools setupOntologies"
+				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupTools setupFuseki setupOntologies"
 
 				// Decrypt files
 				// TODO Add OpenSSL installation as prerequisite to readme?
