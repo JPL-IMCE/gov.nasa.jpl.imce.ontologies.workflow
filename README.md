@@ -6,6 +6,9 @@ The ontology processing and profile generation workflow is intended for validati
 
 ## Environment Setup and Prerequisites
 
+The directory where this project is located must *NOT* contain space characters, parentheses, slash (forward or backwards), or other characters that could
+be interpreted in Makefiles or in a shell as a something that is not part of a filename.
+
 Running the workflow requires a number of tools to be configured: JRuby, SBT, Java 8 (JDK), Make. When using a CI server (such as Jenkins), a number of plugins are recommended to be installed. This is mentioned at the bottom of this section.
 
 ### JRuby
