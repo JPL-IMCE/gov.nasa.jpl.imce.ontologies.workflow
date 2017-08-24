@@ -24,20 +24,13 @@ pipeline {
 	}
 
 	stages {
-		stage('Checkout') {
-			steps {
-				/* This will clone the specific revision which triggered this Pipeline run. */
-				checkout scm
-			}
-		}
-
 		stage('Setup') {
 			steps {
 				echo "Setting up environment..."
 
 				sh "env"
 
-				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupTools setupFuseki setupOntologies"
+				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupTools setupOntologies"
 
 				// Decrypt files
 				// TODO Add OpenSSL installation as prerequisite to readme?
@@ -134,7 +127,7 @@ pipeline {
 				//sh ' || true'
 
 				sh "cd workflow; source ./env.sh; /usr/bin/make profiles"
-				junit '**/target/*.xml'
+				junit 'target/**/*.xml'
 			}
 		}
 

@@ -42,8 +42,6 @@ lazy val testsResultsSetupTask = taskKey[Unit]("Create the tests results directo
 
 lazy val mdJVMFlags = SettingKey[Seq[String]]("md-jvm-flags", "Extra JVM flags for running MD (e.g., debugging)")
 
-lazy val setupFuseki = taskKey[File]("Location of the apache jena fuseki server extracted from dependencies")
-
 lazy val setupTools = taskKey[File]("Location of the imce ontology tools directory extracted from dependencies")
 
 /* @TODO Since this workflow project should be agnostic of which ontologies are processed,
@@ -537,43 +535,6 @@ lazy val imce_ontologies_workflow =
 
         toolsDir
       },
-
-      /* @TODO should move setup of fuseki outside of this...
-      *
-      */
-      setupFuseki := {
-          val slog = streams.value.log
-          val fusekiDir = baseDirectory.value / "target" / "fuseki"
-  
-          if (fusekiDir.exists()) {
-            slog.warn(s"Apache jena fuseki already extracted in $fusekiDir")
-          }  else {
-            IO.createDirectory(fusekiDir)
-  
-            val jfilter: DependencyFilter = new DependencyFilter {
-              def apply(c: String, m: ModuleID, a: Artifact): Boolean =
-                a.extension == "tar.gz" &&
-                  m.organization.startsWith("org.apache.jena") &&
-                  m.name.startsWith("apache-jena-fuseki")
-            }
-            update.value
-              .matching(jfilter)
-              .headOption
-              .fold[Unit] {
-              slog.error("Cannot find apache-jena-fuseki tar.gz!")
-            } { tgz =>
-              slog.warn(s"found: $tgz")
-              val dir = target.value / "tarball"
-              Process(Seq("tar", "--strip-components", "1", "-zxf", tgz.getAbsolutePath), Some(fusekiDir)).! match {
-                case 0 => ()
-                case n => sys.error("Error extracting " + tgz + ". Exit code: " + n)
-              }
-            }
-          }
-  
-          fusekiDir
-        },
-
 
       /* @TODO Since this workflow project should be agnostic of which ontologies are processed,
        * the setup of the ontologies (currently from bintray) should be done outside of this workflow project.
