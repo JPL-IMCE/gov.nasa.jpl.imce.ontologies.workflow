@@ -145,9 +145,6 @@ pipeline {
 		}
 
 		stage('Deploy') {
-			when {
-				expression { params.BUILD_PROFILES == 'TRUE' }
-			}
 			/*
 			 * In addition to the below guard, jenkins-deploy.sh will check whether
 			 * or not a tag is associated with the current commit. *Note*:
