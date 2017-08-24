@@ -100,6 +100,9 @@ pipeline {
 		}
 
 		stage('Compile Profile Generator') {
+			when {
+				expression { params.BUILD_PROFILES == 'TRUE' }
+			}
 			steps {
 				echo "Compiling workflow unit..."
 
@@ -125,21 +128,26 @@ pipeline {
 				 * an opportunity to capture and process the test reports.
 				 */
 				//sh ' || true'
-
+				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupProfileGenerator"
 				sh "cd workflow; source ./env.sh; /usr/bin/make profiles"
 				junit 'target/**/*.xml'
 			}
 		}
 
 		stage('Build Profile Resource') {
+			when {
+				expression { params.BUILD_PROFILES == 'TRUE' }
+			}
 			steps {
 				echo "Building profile resource..."
-
 				sh "sbt -Dproject.version=${params.VERSION_PROFILES} packageProfiles"
 			}
 		}
 
 		stage('Deploy') {
+			when {
+				expression { params.BUILD_PROFILES == 'TRUE' }
+			}
 			/*
 			 * In addition to the below guard, jenkins-deploy.sh will check whether
 			 * or not a tag is associated with the current commit. *Note*:
