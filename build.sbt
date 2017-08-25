@@ -116,6 +116,8 @@ lazy val imce_ontologies_workflow =
 
       classpathTypes += "tgz",
 
+      libraryDependencies += "com.novocode" % "junit-interface" % "0.8" % Test,
+
       libraryDependencies ++= Seq(
         "gov.nasa.jpl.imce"
           % "gov.nasa.jpl.imce.ontologies.tools"
@@ -160,6 +162,8 @@ lazy val imce_ontologies_workflow =
           % "test" classifier "tests"
 
       ),
+
+      libraryDependencies += "gov.nasa.jpl.imce" %% "gov.nasa.jpl.imce.profileGenerator.application" % "2.5.4",
 
       // Avoid unresolvable dependencies from old versions of log4j
       libraryDependencies ~= {
@@ -269,11 +273,13 @@ lazy val imce_ontologies_workflow =
         val mdLibJars = (file(mdBasePath + "lib") ** "*.jar").get.map(Attributed.blank)
         val mdPluginLibJars = (file(mdBasePath + "plugins") ** "*.jar").get.map(Attributed.blank)
         val mdDynScLibJars = (file(mdBasePath + "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
+        val pGLibs = (file("target/profileGenerator") ** "*.jar").get.map(Attributed.blank)
 
-        val allJars = mdLibJars ++ mdPluginLibJars ++ depJars ++ mdDynScLibJars ++ prev
+        val allJars = mdLibJars ++ mdPluginLibJars ++ depJars ++ mdDynScLibJars ++ pGLibs ++ prev
 
         s.log.info(s"=> Adding ${allJars.size} unmanaged jars")
         //s.log.info(s"=> base directory ${allJars.toString()}")
+        //allJars.foreach { j => s.log.info(s"  => ${j}") }
 
         allJars
       },

@@ -39,7 +39,10 @@
 package gov.nasa.jpl.imce.ontologies.workflow.runner
 
 import gov.nasa.jpl.imce.profileGenerator.batch.tests.RunProfileGenerator
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class BatchRunProfileGenerator extends RunProfileGenerator {
 
 }
