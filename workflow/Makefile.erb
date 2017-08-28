@@ -921,7 +921,8 @@ define do_closure
     --namespace '$(5) => $(4)' \
     --name $(1) --uri $(2) --backbone-disjoints "$(BACKBONE_DISJOINTS)" \
     --backbone-prefix $(BACKBONE_PREFIX) \
-    $(6) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
+    $(6) \
+    $(7) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
 endef
 
 <%=
@@ -941,7 +942,7 @@ endef
     bundle.imported_bundles.each do |ib|
       iri_args << ib.iri unless ib.type == 'omg'
     end
-    rule.cmds << "$(call do_closure,#{bundle.name},#{bundle.iri},#{bundle.abbrev},#{bundle.backbone_iri},#{bundle.backbone_abbrev},#{iri_args.join(' ')})"
+    rule.cmds << "$(call do_closure,#{bundle.name},#{bundle.iri},#{bundle.abbrev},#{bundle.backbone_iri},#{bundle.backbone_abbrev},,#{iri_args.join(' ')})"
     memo << rule.to_s
     memo
   end
@@ -958,7 +959,7 @@ endef
     bundle.imported_bundles.each do |ib|
       iri_args << (ib.type == 'imce' ? ib.embedding_iri : ib.iri)
     end
-    rule.cmds << "$(call do_closure,#{bundle.embedding_name},#{bundle.embedding_iri},#{bundle.embedding_abbrev},#{bundle.backbone_iri},#{bundle.backbone_abbrev},#{iri_args.join(' ')})"
+    rule.cmds << "$(call do_closure,#{bundle.embedding_name},#{bundle.embedding_iri},#{bundle.embedding_abbrev},#{bundle.backbone_iri},#{bundle.backbone_abbrev},--embedding,#{iri_args.join(' ')})"
     memo << rule.to_s
     memo
   end
