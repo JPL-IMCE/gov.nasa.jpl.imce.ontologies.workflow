@@ -116,16 +116,21 @@ lazy val imce_ontologies_workflow =
 
       classpathTypes += "tgz",
 
+//      libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % Test,
+
+      libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1",
+      libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % Test,
+
       libraryDependencies ++= Seq(
         "gov.nasa.jpl.imce"
           % "gov.nasa.jpl.imce.ontologies.tools"
-          % "0.9+"
+          % "0.9.+"
           artifacts
           Artifact("gov.nasa.jpl.imce.ontologies.tools", "zip", "zip", "resource"),
 
         "gov.nasa.jpl.imce"
           % "gov.nasa.jpl.imce.ontologies.public"
-          % sys.env.getOrElse("PUBLIC_ONTOLOGIES_VERSION", "1.+")
+          % sys.env.getOrElse("PUBLIC_ONTOLOGIES_VERSION", "1.3+")
           artifacts
           Artifact("gov.nasa.jpl.imce.ontologies.public", "zip", "zip", "resource"),
 
@@ -161,6 +166,8 @@ lazy val imce_ontologies_workflow =
 
       ),
 
+      libraryDependencies += "gov.nasa.jpl.imce" %% "gov.nasa.jpl.imce.profileGenerator.application" % "2.5.4",
+
       // Avoid unresolvable dependencies from old versions of log4j
       libraryDependencies ~= {
         _ map {
@@ -172,7 +179,7 @@ lazy val imce_ontologies_workflow =
         }
       },
 
-      unmanagedClasspath in Compile ++= (unmanagedJars in Compile).value,
+      unmanagedClasspath in Compile := (unmanagedJars in Compile).value,
 
       // Extract jars
       extractArchives := {
@@ -243,8 +250,12 @@ lazy val imce_ontologies_workflow =
 
           val imceSetup = mdInstallDir / "bin" / "magicdraw.imce.setup.sh"
           if (imceSetup.exists()) {
-            val setup = sbt.Process(command = "/bin/bash", arguments = Seq[String](imceSetup.getAbsolutePath)).!
-            require(0 == setup, s"IMCE MD Setup error! ($setup)")
+            require(imceSetup.setExecutable(true), s"Failed to set the executable flag on ${imceSetup.getAbsolutePath}")
+            s.log.info(s"*** Executing bin/magicdraw.imce.setup.sh ...")
+            val setup = sbt.Process(
+              command = Seq(imceSetup.getAbsolutePath),
+              cwd = mdInstallDir.getAbsoluteFile).!
+            require(0 == setup, s"Failed to execute the IMCE MD Setup (${imceSetup.getAbsolutePath}): (status=$setup)")
             s.log.info(s"*** Executed bin/magicdraw.imce.setup.sh script")
           } else {
             s.log.info(s"*** No bin/magicdraw.imce.setup.sh script found!")
@@ -265,11 +276,13 @@ lazy val imce_ontologies_workflow =
         val mdLibJars = (file(mdBasePath + "lib") ** "*.jar").get.map(Attributed.blank)
         val mdPluginLibJars = (file(mdBasePath + "plugins") ** "*.jar").get.map(Attributed.blank)
         val mdDynScLibJars = (file(mdBasePath + "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
+        val pGLibs = (file("target/profileGenerator") ** "*.jar").get.map(Attributed.blank)
 
-        val allJars = mdLibJars ++ mdPluginLibJars ++ depJars ++ mdDynScLibJars ++ prev
+        val allJars = mdLibJars ++ mdPluginLibJars ++ depJars ++ mdDynScLibJars ++ pGLibs ++ prev
 
         s.log.info(s"=> Adding ${allJars.size} unmanaged jars")
         //s.log.info(s"=> base directory ${allJars.toString()}")
+        //allJars.foreach { j => s.log.info(s"  => ${j}") }
 
         allJars
       },
@@ -366,7 +379,9 @@ lazy val imce_ontologies_workflow =
             s"files extracted from zip: $pas")
 
         val mdProperties = new java.util.Properties()
-        IO.load(mdProperties, md_install_dir / "bin" / "magicdraw.properties")
+
+        val prop_dir = md_install_dir / "bin" / "magicdraw.properties"
+        IO.load(mdProperties, prop_dir)
 
         s.log.warn(
           s"=> Read properties file from ${md_install_dir / "bin" / "magicdraw.properties"}")
@@ -503,14 +518,6 @@ lazy val imce_ontologies_workflow =
                 m.name.startsWith("docbook-xsl")
           }
 
-          val cfilter: DependencyFilter = new DependencyFilter {
-            def apply(c: String, m: ModuleID, a: Artifact): Boolean =
-              //a.extension == "tgz" &&
-              a.extension == "tar" &&
-                m.organization.startsWith("gov.nasa.jpl.imce") &&
-                m.name.startsWith("gov.nasa.jpl.imce.oml.converters")
-          }
-
           update.value
             .matching(tfilter)
             .headOption
@@ -533,27 +540,10 @@ lazy val imce_ontologies_workflow =
             slog.warn(s"Docbook in: $toolsDir")
           }
 
-          update.value
-            .matching(cfilter)
-            .headOption
-            .fold[Unit] {
-            slog.error("Cannot find the oml.converters zip!")
-          } { tgz =>
-            val omlConverterDir = toolsDir / "omlConverter"
-            IO.createDirectory(omlConverterDir)
-            Process(Seq("tar", "--strip-components", "1", "-zxf", tgz.getAbsolutePath), Some(omlConverterDir)).! match {
-              case 0 => ()
-              case n => sys.error("Error extracting " + tgz + ". Exit code: " + n)
-            }
-            slog.warn(s"Extracted oml.converters from ${tgz.name}")
-            slog.warn(s"oml.converter in: $omlConverterDir")
-          }
-
         }
 
         toolsDir
       },
-
 
       /* @TODO Since this workflow project should be agnostic of which ontologies are processed,
        * the setup of the ontologies (currently from bintray) should be done outside of this workflow project.

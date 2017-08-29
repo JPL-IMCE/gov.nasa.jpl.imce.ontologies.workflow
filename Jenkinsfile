@@ -2,7 +2,7 @@
 
 pipeline {
 	/* Agent directive is required. */
-	agent any
+	agent { node { label 'imce-infr-dev-01.jpl.nasa.gov' } } 
 
 	/* The following is NOT supported currently! (see below for a workaround) */
 //	tools {
@@ -24,20 +24,13 @@ pipeline {
 	}
 
 	stages {
-		stage('Checkout') {
-			steps {
-				/* This will clone the specific revision which triggered this Pipeline run. */
-				checkout scm
-			}
-		}
-
 		stage('Setup') {
 			steps {
 				echo "Setting up environment..."
 
 				sh "env"
 
-				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} setupTools"
+				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupTools setupOntologies"
 
 				// Decrypt files
 				// TODO Add OpenSSL installation as prerequisite to readme?
@@ -47,16 +40,6 @@ pipeline {
 				}
 
 				// setup Fuseki, ontologies, tools, environment
-			}
-		}
-
-		stage('Compile') {
-			steps {
-				echo "Compiling workflow unit..."
-
-				// Thanks to https://gist.github.com/muuki88/e2824008b653ac0fc5ba749fdf249616 for this one!
-				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} compile test:compile"
-				//archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
 
@@ -72,8 +55,8 @@ pipeline {
 				sh "mkdir -p target/ontologies; cd target/ontologies; git clone ${OML_REPO} ."
 
 				// Invoke the convertOntologies SBT task
-				//sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} setupOMLConverter"
-				//sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} convertOntologies"
+				//sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupOMLConverter"
+				//sh "sbt -Dproject.version=${params.VERSION_PROFILES} convertOntologies"
 			}
 		}
 
@@ -84,8 +67,8 @@ pipeline {
 			steps {
 				echo "Bootstrapping builds..."
 
-				sh "cd workflow; . env.sh; /usr/bin/make bootstrap"
-				sh "cd workflow; . env.sh; /usr/bin/make validation-dependencies"
+				sh "cd workflow; source ./env.sh; /usr/bin/make bootstrap"
+				sh "cd workflow; source ./env.sh; /usr/bin/make validation-dependencies"
 				// run makefile command, same for others below
 			}
 		}
@@ -97,10 +80,10 @@ pipeline {
 			steps {
 				echo "Validating ontologies and loading into Fuseki..."
 
-				sh "cd workflow; . env.sh; /usr/bin/make validate-xml"
-				sh "cd workflow; . env.sh; /usr/bin/make validate-owl"
-				sh "cd workflow; . env.sh; /usr/bin/make validate-groups"
-				sh "cd workflow; . env.sh; /usr/bin/make validate-bundles"
+				sh "cd workflow; source ./env.sh; /usr/bin/make validate-xml"
+				sh "cd workflow; source ./env.sh; /usr/bin/make validate-owl"
+				sh "cd workflow; source ./env.sh; /usr/bin/make validate-groups"
+				sh "cd workflow; source ./env.sh; /usr/bin/make validate-bundles"
 				// run makefile command, same for others below
 			}
 		}
@@ -112,7 +95,20 @@ pipeline {
 			steps {
 				echo "Generating digests..."
 
-				sh "cd workflow; . env.sh; /usr/bin/make digests"
+				sh "cd workflow; source ./env.sh; /usr/bin/make digests"
+			}
+		}
+
+		stage('Compile Profile Generator') {
+			when {
+				expression { params.BUILD_PROFILES == 'TRUE' }
+			}
+			steps {
+				echo "Compiling workflow unit..."
+
+				// Thanks to https://gist.github.com/muuki88/e2824008b653ac0fc5ba749fdf249616 for this one!
+				sh "sbt -Dproject.version=${params.VERSION_PROFILES} compile test:compile"
+				//archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
 
@@ -132,17 +128,19 @@ pipeline {
 				 * an opportunity to capture and process the test reports.
 				 */
 				//sh ' || true'
-
-				sh "cd workflow; . env.sh; /usr/bin/make profiles"
-				junit '**/target/*.xml'
+				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupProfileGenerator"
+				sh "cd workflow; source ./env.sh; /usr/bin/make profiles"
+				junit 'target/**/*.xml'
 			}
 		}
 
 		stage('Build Profile Resource') {
+			when {
+				expression { params.BUILD_PROFILES == 'TRUE' }
+			}
 			steps {
 				echo "Building profile resource..."
-
-				sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} packageProfiles"
+				sh "sbt -Dproject.version=${params.VERSION_PROFILES} packageProfiles"
 			}
 		}
 
@@ -161,7 +159,7 @@ pipeline {
 			}
 			steps {
 				sh 'scripts/jenkins-deploy.sh'
-				//sh "${tool name: 'default-sbt', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin/sbt -Dproject.version=${params.VERSION_PROFILES} publish"
+				//sh "sbt -Dproject.version=${params.VERSION_PROFILES} publish"
 				//sh 'scripts/jenkins-publish.sh'
 			}
 		}
