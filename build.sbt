@@ -116,7 +116,10 @@ lazy val imce_ontologies_workflow =
 
       classpathTypes += "tgz",
 
-      libraryDependencies += "com.novocode" % "junit-interface" % "0.8" % Test,
+//      libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % Test,
+
+      libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1",
+      libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % Test,
 
       libraryDependencies ++= Seq(
         "gov.nasa.jpl.imce"
@@ -176,7 +179,7 @@ lazy val imce_ontologies_workflow =
         }
       },
 
-      unmanagedClasspath in Compile ++= (unmanagedJars in Compile).value,
+      unmanagedClasspath in Compile := (unmanagedJars in Compile).value,
 
       // Extract jars
       extractArchives := {
