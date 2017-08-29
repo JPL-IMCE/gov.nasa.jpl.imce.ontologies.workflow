@@ -278,10 +278,10 @@ lazy val imce_ontologies_workflow =
         val depJars = (file("lib") ** "*.jar").get.map(Attributed.blank)
         val mdLibJars = (file(mdBasePath + "lib") ** "*.jar").get.map(Attributed.blank)
         val mdPluginLibJars = (file(mdBasePath + "plugins") ** "*.jar").get.map(Attributed.blank)
-        val mdDynScLibJars = (file(mdBasePath + "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
+        //val mdDynScLibJars = (file(mdBasePath + "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
         val pGLibs = (file("target/profileGenerator") ** "*.jar").get.map(Attributed.blank)
 
-        val allJars = mdLibJars ++ mdPluginLibJars ++ depJars ++ mdDynScLibJars ++ pGLibs ++ prev
+        val allJars = mdLibJars ++ mdPluginLibJars ++ depJars ++ pGLibs ++ prev
 
         s.log.info(s"=> Adding ${allJars.size} unmanaged jars")
         //s.log.info(s"=> base directory ${allJars.toString()}")

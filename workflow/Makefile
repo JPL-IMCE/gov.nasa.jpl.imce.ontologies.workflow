@@ -79,15 +79,15 @@ artifacts:
 
 profiles:
 	(cd /tmp ; \
-	/bin/rm -rf /tmp/gov.nasa.jpl.imce.profileGenerator.batch ; \
-	git clone https://github.com/JPL-IMCE/gov.nasa.jpl.imce.profileGenerator.batch.git ; \
-	mkdir -p /tmp/gov.nasa.jpl.imce.profileGenerator.batch/target/md.testResults/ ; \
-	ln -s $(WORKFLOW)/../../target/md.package /tmp/gov.nasa.jpl.imce.profileGenerator.batch/target/ ; \
+	/bin/rm -rf /tmp/pg ; \
+	git clone https://github.com/JPL-IMCE/gov.nasa.jpl.imce.profileGenerator.batch.git pg ; \
+	mkdir -p /tmp/pg/target/md.testResults/ ; \
+	ln -s $(WORKFLOW)/../../target/md.package /tmp/pg/target/ ; \
 	find $(WORKFLOW) -type f -name "*.json" | while read line; \
 		do \
-	        cd /tmp/gov.nasa.jpl.imce.profileGenerator.batch ; \
+	        cd /tmp/pg ; \
 		$(SBT) '; set javaOptions in Test  +="-D-Ddigest='$$line'"; test-only gov.nasa.jpl.imce.profileGenerator.batch.tests.RunProfileGenerator -- -Ddigest='$$line ; \
 	    done ; \
 	cd $(WORKFLOW)/../../target; \
-	cp -rv /tmp/gov.nasa.jpl.imce.profileGenerator.batch/target/profiles profiles; \
+	cp -rv /tmp/pg/target/profiles profiles; \
 	cd $(WORKFLOW)/../../workflow )
