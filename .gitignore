@@ -2,3 +2,4 @@
 local.*
 target
 **/local.*
+**/*.log
