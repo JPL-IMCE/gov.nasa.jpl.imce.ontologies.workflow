@@ -33,7 +33,7 @@ pipeline {
 				echo "Setting up environment..."
 
 				sh "env"
-
+                sh "sbt clean cleanFiles"
 				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupTools setupOntologies"
 
 				// Decrypt files
