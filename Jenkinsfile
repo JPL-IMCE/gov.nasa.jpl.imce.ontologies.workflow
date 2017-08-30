@@ -127,6 +127,7 @@ pipeline {
         		always {
             	// Kill vnc display
             	sh "vncserver -kill $DISPLAY"
+        		}
         	}
 			steps {
 				echo "Building profiles..."
@@ -144,7 +145,6 @@ pipeline {
 			}
 
     	}
-		}
 
 		stage('Build Profile Resource') {
 			when {
