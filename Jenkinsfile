@@ -175,11 +175,11 @@ pipeline {
 				//sh 'scripts/jenkins-publish.sh'
 			}
 		}
-		
-		post {
-        	always {
-            	junit '/target/**/*.xml'
-        	}
+	}
+
+	post {
+    	always {
+        	junit '/target/**/*.xml'
     	}
 	}
 }
