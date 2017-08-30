@@ -24,7 +24,7 @@ pipeline {
 	}
 
 	environment {
-		DISPLAY = :9999
+		DISPLAY = ':9999'
 	}
 
 	stages {
