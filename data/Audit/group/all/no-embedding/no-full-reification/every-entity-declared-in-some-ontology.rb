@@ -34,6 +34,7 @@ query %q{
          isiri(?entity)
       && !regex(str(?entity), "<%= JenaApplication::PURL_ORG_SPARQL_RE %>", "i")
       && !regex(str(?entity), "<%= JenaApplication::WWW_W3_ORG_SPARQL_RE %>", "i")
+      && !( isiri(?subject) && ?predicate = owl:versionIRI )
     )
   }
   order by ?entity
