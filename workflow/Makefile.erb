@@ -281,16 +281,16 @@ end
 # discipline
 #
 
-# electrical
+# flight system electrical
 
-include_imce_electrical_group = true
-if include_imce_electrical_group && include_imce_mission_group
-  path = 'imce.jpl.nasa.gov/discipline/electrical'
-  stem = 'electrical'
-  imce_electrical_group = ImceOntologyGroup.new(path, stem)
-  imce_electrical_group.depends_on(imce_mission_group)
-  imce_electrical_group << OntologyPart.new(path, stem)
-  imce_electrical_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+include_imce_fse_group = true
+if include_imce_fse_group && include_imce_mission_group
+  path = 'imce.jpl.nasa.gov/discipline/fse'
+  stem = 'fse'
+  imce_fse_group = ImceOntologyGroup.new(path, stem)
+  imce_fse_group.depends_on(imce_mission_group)
+  imce_fse_group << OntologyPart.new(path, stem)
+  imce_fse_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # fault management
@@ -407,7 +407,7 @@ imce_project_bundle_groups = [
 	imce_mission_group,
 	imce_analysis_group,
 	imce_project_group,
-	imce_electrical_group,
+	imce_fse_group,
 	imce_behavior_group,
 	imce_fault_management_group,
 	imce_vandv_group ]
