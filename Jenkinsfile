@@ -32,8 +32,9 @@ pipeline {
 			steps {
 				echo "Setting up environment..."
 
+				sh "$HOME/.rvm/scripts/rvm"
 				sh "env"
-                sh "sbt clean cleanFiles"
+				sh "sbt clean cleanFiles"
 				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupTools setupOntologies"
 
 				// Decrypt files
