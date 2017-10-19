@@ -128,7 +128,7 @@ pipeline {
 			post {
 			     always {
 			     	    // Kill vnc display
-				    sh "DISPLAY=`sed -n 's/^New.*\(:[0-9][0-9]*\)/\\1/p' $VNC_OUT `; [ test \"$DISPLAY\" ] vncserver kill $DISPLAY"
+				    sh "test -f $VNC_OUT && vncserver -kill `sed -n 's/^New.*\(:[0-9][0-9]*\)/\1/p' $VNC_OUT`
 			     }
 			}
 			steps {
