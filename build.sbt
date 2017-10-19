@@ -83,6 +83,8 @@ lazy val imce_ontologies_workflow =
 
       publishMavenStyle := true,
 
+      logLevel in Test := Level.Debug,
+
       // do not include all repositories in the POM
       pomAllRepositories := false,
 
@@ -124,13 +126,13 @@ lazy val imce_ontologies_workflow =
       libraryDependencies ++= Seq(
         "gov.nasa.jpl.imce"
           % "gov.nasa.jpl.imce.ontologies.tools"
-          % "0.9.+"
+          % "0.9.6+"
           artifacts
           Artifact("gov.nasa.jpl.imce.ontologies.tools", "zip", "zip", "resource"),
 
         "gov.nasa.jpl.imce"
           % "gov.nasa.jpl.imce.ontologies.public"
-          % sys.env.getOrElse("PUBLIC_ONTOLOGIES_VERSION", "1.3+")
+          % sys.env.getOrElse("PUBLIC_ONTOLOGIES_VERSION", "1.4.0+")
           artifacts
           Artifact("gov.nasa.jpl.imce.ontologies.public", "zip", "zip", "resource"),
 
@@ -162,7 +164,8 @@ lazy val imce_ontologies_workflow =
         "gov.nasa.jpl.imce"
           %% "gov.nasa.jpl.imce.profileGenerator.batch"
           % "0.2.2"
-          % "test" classifier "tests"
+	  % "compile" classifier "tests"
+          //% "test" classifier "tests"
 
       ),
 
@@ -275,10 +278,10 @@ lazy val imce_ontologies_workflow =
         val depJars = (file("lib") ** "*.jar").get.map(Attributed.blank)
         val mdLibJars = (file(mdBasePath + "lib") ** "*.jar").get.map(Attributed.blank)
         val mdPluginLibJars = (file(mdBasePath + "plugins") ** "*.jar").get.map(Attributed.blank)
-        val mdDynScLibJars = (file(mdBasePath + "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
+        //val mdDynScLibJars = (file(mdBasePath + "dynamicScripts") ** "*.jar").get.map(Attributed.blank)
         val pGLibs = (file("target/profileGenerator") ** "*.jar").get.map(Attributed.blank)
 
-        val allJars = mdLibJars ++ mdPluginLibJars ++ depJars ++ mdDynScLibJars ++ pGLibs ++ prev
+        val allJars = mdLibJars ++ mdPluginLibJars ++ depJars ++ pGLibs ++ prev
 
         s.log.info(s"=> Adding ${allJars.size} unmanaged jars")
         //s.log.info(s"=> base directory ${allJars.toString()}")
@@ -331,7 +334,7 @@ lazy val imce_ontologies_workflow =
 
       parallelExecution in Test := false,
 
-      fork in Test := true,
+      fork in (Test,run) := true,
 
       testGrouping in Test := {
         val original = (testGrouping in Test).value
@@ -458,6 +461,8 @@ lazy val imce_ontologies_workflow =
               out.println(line)
           }
           out.close()
+
+          s.log.info("=> Using classpath: " + (imcePrefix ++ mdClasspath).mkString(File.pathSeparator))
 
           val forkOptions = ForkOptions(
             bootJars = imceBoot ++ mdBoot,
@@ -731,7 +736,7 @@ lazy val imce_ontologies_workflow =
 
         // Filter the list of files in a subdirectory by the extension used by digests (here: json)
         //val profiles = collectFiles(profilesDir).filter(f => f.getAbsoluteFile.toString.endsWith(".mdzip"))
-        val profiles = (profilesDir ** "*.mdzip").pair(relativeTo(root)).sortBy(_._2) ++ imceDependencies
+        val profiles = (profilesDir ** "*.mdzip").pair(relativeTo(root)).sortBy(_._2) // ++ imceDependencies
 
         // Create the various profiles, and package
         val resourceManager = root / "data" / "resourcemanager"

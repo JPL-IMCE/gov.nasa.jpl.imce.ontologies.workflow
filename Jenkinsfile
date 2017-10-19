@@ -23,13 +23,19 @@ pipeline {
 		string(name: 'OML_REPO', defaultValue: 'undefined', description: 'Repository where OML data to be converted is stored.')
 	}
 
+	environment {
+		DISPLAY = ':9999'
+		GEM_HOME = '/home/jenkins/.rvm/gems/jruby-1.7.19'
+		PATH = '/home/jenkins/.rvm/gems/jruby-1.7.19/bin:/home/jenkins/.rvm/gems/jruby-1.7.19@global/bin:/home/jenkins/.rvm/rubies/jruby-1.7.19/bin:/usr/lib64/qt-3.3/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/jenkins/.rvm/bin'
+	}
+
 	stages {
 		stage('Setup') {
 			steps {
 				echo "Setting up environment..."
 
 				sh "env"
-
+				sh "sbt clean cleanFiles"
 				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupTools setupOntologies"
 
 				// Decrypt files
@@ -119,8 +125,16 @@ pipeline {
 			when {
 				expression { params.BUILD_PROFILES == 'TRUE' }
 			}
+			post {
+        		always {
+            	// Kill vnc display
+            	sh "vncserver -kill $DISPLAY"
+        		}
+        	}
 			steps {
 				echo "Building profiles..."
+				// Kill old display and start VNC Server for headless MD
+				sh "vncserver -kill $DISPLAY 2> /dev/null || true; vncserver $DISPLAY -SecurityTypes None"
 
 				/*
 				 * The following inline shell conditional ensures that the shell
@@ -130,9 +144,9 @@ pipeline {
 				//sh ' || true'
 				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupProfileGenerator"
 				sh "cd workflow; source ./env.sh; /usr/bin/make profiles"
-				junit 'target/**/*.xml'
 			}
-		}
+
+    	}
 
 		stage('Build Profile Resource') {
 			when {
@@ -163,5 +177,11 @@ pipeline {
 				//sh 'scripts/jenkins-publish.sh'
 			}
 		}
+	}
+
+	post {
+    	always {
+        	junit 'target/**/*.xml'
+    	}
 	}
 }

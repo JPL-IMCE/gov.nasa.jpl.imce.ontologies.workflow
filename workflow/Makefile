@@ -78,8 +78,16 @@ artifacts:
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} artifacts)
 
 profiles:
-	(find $(WORKFLOW) -type f -name "*.json" | while read line; \
+	(cd /tmp ; \
+	/bin/rm -rf /tmp/pg ; \
+	git clone https://github.com/JPL-IMCE/gov.nasa.jpl.imce.profileGenerator.batch.git pg ; \
+	mkdir -p /tmp/pg/target/md.testResults/ ; \
+	ln -s $(WORKFLOW)/../../target/md.package /tmp/pg/target/ ; \
+	find $(WORKFLOW) -type f -name "*.json" | while read line; \
 		do \
-	        cd $(WORKFLOW)/../..; \
-	        $(SBT) '; set javaOptions in Test  +="-D-Ddigest='$$line'"; test-only gov.nasa.jpl.imce.ontologies.workflow.runner.BatchRunProfileGenerator -- -Ddigest='$$line ; \
-	    done )
+	        cd /tmp/pg ; \
+		$(SBT) '; set javaOptions in Test  +="-D-Ddigest='$$line'"; test-only gov.nasa.jpl.imce.profileGenerator.batch.tests.RunProfileGenerator -- -Ddigest='$$line ; \
+	    done ; \
+	cd $(WORKFLOW)/../../target; \
+	cp -rv /tmp/pg/target/profiles profiles; \
+	cd $(WORKFLOW)/../../workflow )

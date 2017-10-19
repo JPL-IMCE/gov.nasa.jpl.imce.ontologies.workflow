@@ -108,31 +108,20 @@ XSLTPROC ?= xsltproc
 <%
 
 #
-# W3C ONTOLOGIES
+# DUBLIN CORE METADATA ONTOLOGY
 #
 
-# w3_parts = []
+dc_parts = []
 
-# w3_parts << OntologyPart.new('www.w3.org/2001', 'XMLSchema', 'xsd')
-# w3_parts << OntologyPart.new('www.w3.org/1999/02', '22-rdf-syntax-ns', 'rdf').ontology_artifact_only = true
-# w3_parts << OntologyPart.new('www.w3.org/2000/01', 'rdf-schema', 'rdfs').ontology_artifact_only = true
-# w3_parts << OntologyPart.new('www.w3.org/2002/07', 'owl').ontology_artifact_only = true
-# w3_parts << OntologyPart.new('www.w3.org/2003/g', 'data-view').ontology_artifact_only = true
-# w3_parts << OntologyPart.new('www.w3.org/2003/11', 'swrl').ontology_artifact_only = true
+dc_parts << OntologyPart.new('purl.org/dc/elements', '1.1/', 'dc', '/')
 
 #
-# DUBLIN CORE ONTOLOGIES
+# IMCE OML ONTOLOGY
 #
 
-# dc_parts = []
+oml_parts = []
 
-# dc_parts << OntologyPart.new('purl.org/dc/elements', '1.1', 'dc', '/').ontology_artifact_only = true
-
-# IMCE OMF ONTOLOGY
-
-# omf_parts = []
-
-# omf_parts << OntologyPart.new('imce.jpl.nasa.gov/foundation/omf', 'omf').ontology_artifact_only = true
+oml_parts << OntologyPart.new('imce.jpl.nasa.gov/oml', 'oml')
 
 #
 # OMG ONTOLOGIES
@@ -292,6 +281,18 @@ end
 # discipline
 #
 
+# flight system electrical
+
+include_imce_fse_group = true
+if include_imce_fse_group && include_imce_mission_group
+  path = 'imce.jpl.nasa.gov/discipline/fse'
+  stem = 'fse'
+  imce_fse_group = ImceOntologyGroup.new(path, stem)
+  imce_fse_group.depends_on(imce_mission_group)
+  imce_fse_group << OntologyPart.new(path, stem)
+  imce_fse_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+end
+
 # fault management
 
 include_imce_fault_management_group = true
@@ -406,6 +407,7 @@ imce_project_bundle_groups = [
 	imce_mission_group,
 	imce_analysis_group,
 	imce_project_group,
+	imce_fse_group,
 	imce_behavior_group,
 	imce_fault_management_group,
 	imce_vandv_group ]
