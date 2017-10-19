@@ -24,9 +24,9 @@ pipeline {
 	}
 
 	environment {
-		DISPLAY = ':9999'
 		GEM_HOME = '/home/jenkins/.rvm/gems/jruby-1.7.19'
 		PATH = '/home/jenkins/.rvm/gems/jruby-1.7.19/bin:/home/jenkins/.rvm/gems/jruby-1.7.19@global/bin:/home/jenkins/.rvm/rubies/jruby-1.7.19/bin:/usr/lib64/qt-3.3/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/jenkins/.rvm/bin'
+		VNC_OUT = './vnc.out'
 	}
 
 	stages {
@@ -126,15 +126,15 @@ pipeline {
 				expression { params.BUILD_PROFILES == 'TRUE' }
 			}
 			post {
-        		always {
-            	// Kill vnc display
-            	sh "vncserver -kill $DISPLAY"
-        		}
-        	}
+			     always {
+			     	    // Kill vnc display
+				    sh "DISPLAY=$(expr "$(sed -n '/^New/p' $VNC_OUT)" : '.*\(:[0-9][0-9]*\)$'); [ test \"$DISPLAY\" ] vncserver kill $DISPLAY"
+			     }
+			}
 			steps {
 				echo "Building profiles..."
 				// Kill old display and start VNC Server for headless MD
-				sh "vncserver -kill $DISPLAY 2> /dev/null || true; vncserver $DISPLAY -SecurityTypes None"
+				sh "vncserver -SecurityTypes None | tee $VNC_OUT"
 
 				/*
 				 * The following inline shell conditional ensures that the shell
