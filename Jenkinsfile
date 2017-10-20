@@ -134,7 +134,7 @@ pipeline {
 			steps {
 				echo "Building profiles..."
 				// Kill old display and start VNC Server for headless MD
-				sh "vncserver -SecurityTypes None | tee $VNC_OUT"
+				sh "vncserver -SecurityTypes None 2>&1 | tee $VNC_OUT"
 
 				/*
 				 * The following inline shell conditional ensures that the shell
