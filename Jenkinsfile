@@ -144,7 +144,7 @@ pipeline {
 				 */
 				//sh ' || true'
 				sh "sbt $SBT_OPTIONS -Dproject.version=${params.VERSION_PROFILES} setupProfileGenerator"
-				sh "cd workflow; source ./env.sh; /usr/bin/make profiles"
+				sh "cd workflow; source ./env.sh; export DISPLAY=`sed -n 's/^New.*\\(:[0-9][0-9]*\\)/\\1/p' $VNC_OUT`;/usr/bin/make profiles"
 			}
 
     	}
