@@ -18,7 +18,7 @@ query %q{
   
   <%= @namespace_defs %>
   
-  select distinct ?oprop ?isDerived ?rule_exists ?label_exists ?relclass_exists ?relclass_embedded
+  select distinct ?oprop ?isDerived ?rule_exists ?relclass_exists ?relclass_embedded
                   ?srcprop_exists ?srcprop_embedded ?trgprop_exists ?trgprop_embedded
                   ?srcprop_range_ok ?trgprop_range_ok ?rule ?srcprop ?trgprop ?relclass
                   ?func_ok ?invfunc_ok ?inv_oprop ?toprop ?domain_mapped ?range_mapped
@@ -56,6 +56,8 @@ query %q{
       ?rule swrl:head [ rdf:first ?prop_pred ;
                         rdf:rest rdf:nil
                       ] .
+      ?rule rdfs:label ?label
+
       { 
         ?rule swrl:body [
                         rdf:first [ swrl:propertyPredicate ?srcprop ;
@@ -104,7 +106,6 @@ query %q{
       # find reification rule label
 
       optional {
-        ?rule rdfs:label ?label
       }
 
     }
@@ -127,9 +128,7 @@ query %q{
     bind(exists { ?oprop rdf:type owl:FunctionalProperty } as ?oprop_func)
     bind(exists { ?oprop rdf:type owl:InverseFunctionalProperty } as ?oprop_invfunc)
       
-    bind(bound(?rule) as ?rule_exists)
-    bind(concat(strafter(str(?oprop), "#"), "-reification-rule") as ?correct_label)
-    bind(!?rule_exists || (bound(?label) && (?label = ?correct_label)) as ?label_exists) # don't report missing label if no rule
+    bind(bound(?rule) && (?label = concat(strafter(str(?oprop), "#"), "-reification-rule")) as ?rule_exists)
     
     bind(bound(?srcprop) as ?srcprop_exists)
     bind(?srcprop_exists && exists { ?srcprop rdfs:subPropertyOf owl2-mof2-backbone:topReifiedObjectPropertySource } as ?srcprop_fwd_om2_embedded)
@@ -178,7 +177,6 @@ query %q{
 prologue do
   @rules = {
     :rule_exists => 'no property reification rule',
-    :label_exists => 'no reification rule label',
     :relclass_exists => 'no reified object property class',
     :srcprop_exists => 'no source property',
     :trgprop_exists => 'no target property',
