@@ -20,7 +20,7 @@ query %q{
   
   select distinct ?oprop ?isDerived ?rule_exists ?relclass_exists ?relclass_embedded
                   ?srcprop_exists ?srcprop_embedded ?trgprop_exists ?trgprop_embedded
-                  ?srcprop_range_ok ?trgprop_range_ok ?rule ?srcprop ?trgprop ?relclass
+                  ?srcprop_range_ok ?trgprop_range_ok ?srcprop ?trgprop ?relclass
                   ?func_ok ?invfunc_ok ?inv_oprop ?toprop ?domain_mapped ?range_mapped
   
   <%= @from_clauses_by_group['named'] %>
@@ -103,11 +103,6 @@ query %q{
         ?trgprop rdfs:range ?trgprop_range .
       }
 
-      # find reification rule label
-
-      optional {
-      }
-
     }
     optional {
       ?oprop rdfs:domain ?oprop_domain .
@@ -115,7 +110,7 @@ query %q{
     optional {
       ?oprop rdfs:range ?oprop_range .
     }
-   
+
     optional {
       ?oprop rdfs:domain ?oprop_domain .
     }
@@ -128,7 +123,7 @@ query %q{
     bind(exists { ?oprop rdf:type owl:FunctionalProperty } as ?oprop_func)
     bind(exists { ?oprop rdf:type owl:InverseFunctionalProperty } as ?oprop_invfunc)
       
-    bind(bound(?rule) && (?label = concat(strafter(str(?oprop), "#"), "-reification-rule")) as ?rule_exists)
+    bind(bound(?rule) as ?rule_exists)
     
     bind(bound(?srcprop) as ?srcprop_exists)
     bind(?srcprop_exists && exists { ?srcprop rdfs:subPropertyOf owl2-mof2-backbone:topReifiedObjectPropertySource } as ?srcprop_fwd_om2_embedded)
