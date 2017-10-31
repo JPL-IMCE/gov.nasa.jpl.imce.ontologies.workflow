@@ -20,7 +20,7 @@ query %q{
   
   select distinct ?oprop ?isDerived ?rule_exists ?relclass_exists ?relclass_embedded
                   ?srcprop_exists ?srcprop_embedded ?trgprop_exists ?trgprop_embedded
-                  ?srcprop_range_ok ?trgprop_range_ok ?rule ?srcprop ?trgprop ?relclass
+                  ?srcprop_range_ok ?trgprop_range_ok ?srcprop ?trgprop ?relclass
                   ?func_ok ?invfunc_ok ?inv_oprop ?toprop ?domain_mapped ?range_mapped
   
   <%= @from_clauses_by_group['named'] %>
@@ -56,6 +56,8 @@ query %q{
       ?rule swrl:head [ rdf:first ?prop_pred ;
                         rdf:rest rdf:nil
                       ] .
+      ?rule rdfs:label ?label
+
       { 
         ?rule swrl:body [
                         rdf:first [ swrl:propertyPredicate ?srcprop ;
@@ -100,6 +102,7 @@ query %q{
       optional {
         ?trgprop rdfs:range ?trgprop_range .
       }
+
     }
     optional {
       ?oprop rdfs:domain ?oprop_domain .
@@ -107,7 +110,7 @@ query %q{
     optional {
       ?oprop rdfs:range ?oprop_range .
     }
-   
+
     optional {
       ?oprop rdfs:domain ?oprop_domain .
     }
