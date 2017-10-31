@@ -24,9 +24,10 @@ pipeline {
 	}
 
 	environment {
-		DISPLAY = ':9999'
 		GEM_HOME = '/home/jenkins/.rvm/gems/jruby-1.7.19'
-		PATH = '/home/jenkins/.rvm/gems/jruby-1.7.19/bin:/home/jenkins/.rvm/gems/jruby-1.7.19@global/bin:/home/jenkins/.rvm/rubies/jruby-1.7.19/bin:/usr/lib64/qt-3.3/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/jenkins/.rvm/bin'
+		PATH = '$PATH:/home/jenkins/.rvm/gems/jruby-1.7.19/bin:/home/jenkins/.rvm/gems/jruby-1.7.19@global/bin:/home/jenkins/.rvm/rubies/jruby-1.7.19/bin:/usr/lib64/qt-3.3/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/jenkins/.rvm/bin'
+		SBT_OPTIONS = '-batch -no-colors'
+		VNC_OUT = './vnc.out'
 	}
 
 	stages {
@@ -35,8 +36,8 @@ pipeline {
 				echo "Setting up environment..."
 
 				sh "env"
-				sh "sbt clean cleanFiles"
-				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupTools setupOntologies"
+				sh "sbt $SBT_OPTIONS clean cleanFiles"
+				sh "sbt $SBT_OPTIONS -Dproject.version=${params.VERSION_PROFILES} setupTools setupOntologies"
 
 				// Decrypt files
 				// TODO Add OpenSSL installation as prerequisite to readme?
@@ -61,8 +62,8 @@ pipeline {
 				sh "mkdir -p target/ontologies; cd target/ontologies; git clone ${OML_REPO} ."
 
 				// Invoke the convertOntologies SBT task
-				//sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupOMLConverter"
-				//sh "sbt -Dproject.version=${params.VERSION_PROFILES} convertOntologies"
+				//sh "sbt $SBT_OPTIONS -Dproject.version=${params.VERSION_PROFILES} setupOMLConverter"
+				//sh "sbt $SBT_OPTIONS -Dproject.version=${params.VERSION_PROFILES} convertOntologies"
 			}
 		}
 
@@ -113,7 +114,7 @@ pipeline {
 				echo "Compiling workflow unit..."
 
 				// Thanks to https://gist.github.com/muuki88/e2824008b653ac0fc5ba749fdf249616 for this one!
-				sh "sbt -Dproject.version=${params.VERSION_PROFILES} compile test:compile"
+				sh "sbt $SBT_OPTIONS -Dproject.version=${params.VERSION_PROFILES} compile test:compile"
 				//archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
 			}
 		}
@@ -126,15 +127,15 @@ pipeline {
 				expression { params.BUILD_PROFILES == 'TRUE' }
 			}
 			post {
-        		always {
-            	// Kill vnc display
-            	sh "vncserver -kill $DISPLAY"
-        		}
-        	}
+			     always {
+			     	    // Kill vnc display
+				    sh "test -f $VNC_OUT && vncserver -kill `sed -n 's/^New.*\\(:[0-9][0-9]*\\)/\\1/p' $VNC_OUT`"
+			     }
+			}
 			steps {
 				echo "Building profiles..."
 				// Kill old display and start VNC Server for headless MD
-				sh "vncserver -kill $DISPLAY 2> /dev/null || true; vncserver $DISPLAY -SecurityTypes None"
+				sh "vncserver -SecurityTypes None 2>&1 | tee $VNC_OUT"
 
 				/*
 				 * The following inline shell conditional ensures that the shell
@@ -142,8 +143,8 @@ pipeline {
 				 * an opportunity to capture and process the test reports.
 				 */
 				//sh ' || true'
-				sh "sbt -Dproject.version=${params.VERSION_PROFILES} setupProfileGenerator"
-				sh "cd workflow; source ./env.sh; /usr/bin/make profiles"
+				sh "sbt $SBT_OPTIONS -Dproject.version=${params.VERSION_PROFILES} setupProfileGenerator"
+				sh "cd workflow; source ./env.sh; export DISPLAY=`sed -n 's/^New.*\\(:[0-9][0-9]*\\)/\\1/p' $VNC_OUT`;/usr/bin/make profiles"
 			}
 
     	}
@@ -154,7 +155,7 @@ pipeline {
 			}
 			steps {
 				echo "Building profile resource..."
-				sh "sbt -Dproject.version=${params.VERSION_PROFILES} packageProfiles"
+				sh "sbt $SBT_OPTIONS -Dproject.version=${params.VERSION_PROFILES} packageProfiles"
 			}
 		}
 
@@ -173,15 +174,15 @@ pipeline {
 			}
 			steps {
 				sh 'scripts/jenkins-deploy.sh'
-				//sh "sbt -Dproject.version=${params.VERSION_PROFILES} publish"
+				//sh "sbt $SBT_OPTIONS -Dproject.version=${params.VERSION_PROFILES} publish"
 				//sh 'scripts/jenkins-publish.sh'
 			}
 		}
 	}
 
 	post {
-    	always {
-        	junit 'target/**/*.xml'
-    	}
+	    	always {
+        		junit 'target/**/*.xml'
+    		}
 	}
 }
