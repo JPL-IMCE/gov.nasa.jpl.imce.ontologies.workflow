@@ -33,7 +33,11 @@ query %q{
     bind(exists { ?klass rdfs:subClassOf analysis:AnalyzedElement } as ?is_ae)
 
     filter(
-         regex(str(?super), "/backbone/.*#(Entity|Aspect|ReifiedObjectProperty)$")
+         ?klass != analysis:AnalyzedElement
+      && ?klass != analysis:CharacterizedElement
+      && ?super != analysis:AnalyzedElement
+      && ?super != analysis:CharacterizedElement
+      && regex(str(?super), "/backbone/.*#(Entity|Aspect|ReifiedObjectProperty)$")
       && !regex(str(?klass), "/backbone/.*#")
     )
   }
