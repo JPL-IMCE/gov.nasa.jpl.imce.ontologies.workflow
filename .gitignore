@@ -3,3 +3,4 @@ local.*
 target
 **/local.*
 **/*.log
+**/#*#

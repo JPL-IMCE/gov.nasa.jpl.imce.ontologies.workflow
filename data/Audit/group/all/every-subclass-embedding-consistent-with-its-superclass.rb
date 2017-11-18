@@ -43,7 +43,6 @@ query %q{
         && ?subclass != ?superclass
         && !regex(str(?subclass), "http://imce\\\\.jpl\\\\.nasa\\\\.gov/backbone/.*#")
         && !regex(str(?superlass), "http://imce\\\\.jpl\\\\.nasa\\\\.gov/backbone/.*#")
-        && not exists { ?superclass annotation:noMapping true }
         && (
                 <%= @ontologies_by_group['named'].map { |o| o.to_uriref }.equal_any?('?imce_graph_1') %>
              && <%= @ontologies_by_group['imce'].map { |o| o.to_uriref }.equal_any?('?imce_graph_2') %>
