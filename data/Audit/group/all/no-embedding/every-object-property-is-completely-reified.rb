@@ -153,8 +153,8 @@ query %q{
     bind(?oprop_func = ?srcprop_invfunc as ?func_ok)
     bind(?oprop_invfunc = ?trgprop_invfunc as ?invfunc_ok)
     
-    bind(bound(?oprop_domain) && as ?domain_mapped)
-    bind(bound(?oprop_range) && ?range_mapped)
+    bind(bound(?oprop_domain) as ?domain_mapped)
+    bind(bound(?oprop_range) as ?range_mapped)
 
     # Restrict object properties to embedded properties in IMCE namespace.
     
