@@ -21,6 +21,7 @@ query %q{
   select distinct ?entity ?audit_case_ok ?audit_case_text
   
   <%= @from_named_clauses_by_group['named'] %>
+  <%= @from_named_clauses_by_group['imported'] %>
   
   where {
     graph ?graph { ?entity rdf:type ?type . }
