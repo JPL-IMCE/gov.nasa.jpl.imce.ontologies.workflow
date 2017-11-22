@@ -27,13 +27,14 @@ query %q{
     bind(
       ( strstarts(str(?entity), str(?graph))
         || strstarts(str(?entity), concat("http://imce.jpl.nasa.gov/backbone/", strafter(str(?graph), "http://")))
+        || ?type = swrl:Variable
       ) as ?audit_case_ok
     )
     bind (concat(concat("declared in ", str(?graph)), ".") as ?audit_case_text)
   
     filter (
          !isblank(?entity)
-      && !?type = owl:AnnotationProperty
+      && ?type != owl:AnnotationProperty
     )
   }
   order by ?graph ?entity
