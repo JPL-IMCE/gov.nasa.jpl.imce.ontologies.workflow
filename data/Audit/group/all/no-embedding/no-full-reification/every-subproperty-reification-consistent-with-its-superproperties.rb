@@ -61,8 +61,6 @@ query %q{
     filter (
         <%= @ontologies_by_group['named'].map { |o| o.to_uriref }.equal_any?('?graph') %>
       && ?sub_prop != ?sup_prop
-      && not exists { ?sub_prop annotation:noMapping true }
-      && not exists { ?sup_prop annotation:noMapping true }
     )
   }
   order by ?sub_prop ?sup_prop
