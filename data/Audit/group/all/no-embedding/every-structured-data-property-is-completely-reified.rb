@@ -116,7 +116,6 @@ query %q{
       ?sdprop rdfs:range ?sdprop_range .
     }
       
-    bind(exists { ?sdprop annotation:noMapping true } as ?sdprop_noMapping)
     bind(exists { ?sdprop annotation:isDerived true } as ?isDerived)
     bind(exists { ?sdprop rdf:type owl:FunctionalProperty } as ?sdprop_func)
     bind(exists { ?sdprop rdf:type owl:InverseFunctionalProperty } as ?sdprop_invfunc)
@@ -152,8 +151,8 @@ query %q{
     bind(?sdprop_func = ?srcprop_invfunc as ?func_ok)
     bind(?sdprop_invfunc = ?trgprop_invfunc as ?invfunc_ok)
     
-    bind(bound(?sdprop_domain) && not exists { ?sdprop_domain annotation:noMapping true } as ?domain_mapped)
-    bind(bound(?sdprop_range) && not exists { ?sdprop_range annotation:noMapping true } as ?range_mapped)
+    bind(bound(?sdprop_domain) as ?domain_mapped)
+    bind(bound(?sdprop_range) as ?range_mapped)
 
     # Restrict object properties to embedded properties in IMCE namespace.
     

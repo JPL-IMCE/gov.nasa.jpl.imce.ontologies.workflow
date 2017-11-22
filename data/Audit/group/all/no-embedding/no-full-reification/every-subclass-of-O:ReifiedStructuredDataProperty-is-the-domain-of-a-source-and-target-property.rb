@@ -41,7 +41,6 @@ query %q{
     filter (
          ?klass != owl:Nothing
       && ! <%= @top_rsdp.equal_any?('?klass') %>
-      && not exists { ?klass annotation:noMapping true }
     )
 
   }
