@@ -40,6 +40,7 @@ query %q{
       ?entity rdf:type ?rdf_type .
       optional {
         ?entity rdfs:label ?label
+        filter (lang(?label) = "EN" || lang(?label) = "")
       }
     }
     ?entity ?sub_of ?top_entity .
@@ -94,14 +95,12 @@ end
 
 case_name { |r| r.entity.to_qname(@namespace_by_prefix) }
 predicate do |r|
-  label = r.entity.get_local_name.gsub(/([a-z])([A-Z])/, '\1 \2')
-  case r.rdf_type
-  when @owl_object_property, @owl_datatype_property
-    label.downcase!
-  end
-  if r.labels.include?(label)
+  case r.labels.size
+  when 0
+    [false, "ontology #{r.graph} entity #{r.entity} lacks label."]
+  when 1
     [true, nil]
   else
-    [false, "ontology #{r.graph} entity #{r.entity} lacks label '#{label}'."]
+    [false, "ontology #{r.graph} entity #{r.entity} has multiple labels."]
   end
 end
