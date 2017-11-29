@@ -97,7 +97,14 @@ case_name { |r| r.entity.to_qname(@namespace_by_prefix) }
 predicate do |r|
   case r.labels.size
   when 0
-    [false, "ontology #{r.graph} entity #{r.entity} lacks label."]
+    split = r.entity.get_local_name.gsub(/([a-z0-9])([A-Z])/, '\1 \2')
+    sug_label =
+      if %w{owl:DatatypeProperty owl:ObjectProperty}.include?(r.rdf_type)
+        split.downcase
+      else
+        split
+      end
+    [false, "ontology #{r.graph} entity #{r.entity} lacks label. Suggest '#{sug_label}'."]
   when 1
     [true, nil]
   else
