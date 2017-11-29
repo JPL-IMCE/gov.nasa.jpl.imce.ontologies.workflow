@@ -16,9 +16,7 @@ name 'every class embedded in UML'
 
 query %q{
 
-  <%= @namespace_defs %>
-  
-  select distinct ?klass ?audit_case_ok
+  <%= @namespace_defs %>  select distinct ?klass ?audit_case_ok
   
   <%= @from_clauses_by_group['named'] %>
   <%= @from_named_clauses_by_group['named'] %>
@@ -36,11 +34,11 @@ query %q{
     bind(exists { ?klass rdfs:subClassOf owl2-mof2-backbone:ReifiedObjectProperty } as ?reified_op)
     bind(exists { ?klass rdfs:subClassOf owl2-mof2-backbone:ReifiedStructuredDataProperty } as ?reified_sdp)
     bind(?reified_op || ?reified_sdp as ?reified)
-
     bind((?reified || ?embedded_element) as ?audit_case_ok)
   
     filter (
          <%= @ontologies_by_group['named'].map { |o| o.to_uriref }.equal_any?('?graph') %>
+      && !regex(str(?klass), "http://imce\\\\.jpl\\\\.nasa\\\\.gov/backbone/.*#")
       && ?klass != owl:Thing
       && ?klass != owl:Nothing
     )
