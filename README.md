@@ -4,6 +4,19 @@
 
 The ontology processing and profile generation workflow is intended for validating and generating MagicDraw-compatible SysML profiles for core IMCE ontologies. It uses OWL ontologies (*TODO: OML AS INPUT*) as input. The following will walk through the environment setup, and give instructions on how to run the workflow (a) locally and (b) on a CI system such as Jenkins.
 
+## Running the roundtrip conversions.
+
+- `git checkout feature/IMCEIS-1616-update-audits-for-new-OML-backbone-o`
+- `sbt setupTools`
+- `cd workflow`
+- `./env.sh`
+- `../scripts/rt`
+
+The conversion results will be in `/tmp/conversion-test`
+
+- Start Zeppelin (with `$ZEPELLIN_HOME/notebook` linked to this project's `notebook` folder
+- Open the notebook `Round-trip Ontology Conversion Analysis`
+
 ## Environment Setup and Prerequisites
 
 The directory where this project is located must *NOT* contain space characters, parentheses, slash (forward or backwards), or other characters that could
