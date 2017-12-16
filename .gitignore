@@ -7,3 +7,4 @@ target
 **/*~
 **/*.census
 **/*.csv
+**/metastore_db
