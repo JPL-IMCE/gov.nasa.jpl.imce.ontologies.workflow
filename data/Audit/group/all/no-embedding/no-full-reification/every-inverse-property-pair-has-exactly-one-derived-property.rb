@@ -21,6 +21,7 @@ query %q{
   select distinct ?prop1 ?prop2 ?audit_case_ok
   
   <%= @from_clauses_by_group['named'] %>
+  <%= @from_clauses_by_group_by_type['named']['PropertyEntailments'] %>
   
   where {
     

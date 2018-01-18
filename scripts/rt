@@ -7,8 +7,8 @@ D3=$ROOT/3-owl
 
 CATALOG=oml.catalog.xml
 CENSUS="ruby $HOME/git/gov.nasa.jpl.imce.ontologies.tools/tools/audit-census"
-CONVERT=$HOME/Downloads/OMLConverter/bin/omlDirectoryConverter
-MASTER=$HOME/git/gov.nasa.jpl.imce.ontologies.public/ontologies
+CONVERT=$HOME/Downloads/OMLConverters/bin/omlConverter
+SOURCE=$HOME/git/gov.nasa.jpl.imce.ontologies.public/ontologies
 ONTOLOGIES=$PWD/../target/ontologies
 ARTIFACTS=$PWD/../target/workflow/artifacts
 TESTS=$PWD/../target/workflow/tests
@@ -51,7 +51,7 @@ initialize() {
 
 analyze_original_owl () {
     mkdir $D1
-    rsync -av $MASTER $D1
+    rsync -av $SOURCE $D1
     rm -f $ONTOLOGIES
     ln -s $D1/ontologies $ONTOLOGIES
     run
@@ -60,13 +60,11 @@ analyze_original_owl () {
 }
 
 convert_to_oml() {
-    mkdir $D2/ontologies
-    $CONVERT -- -cat $D1/ontologies/$CATALOG -d $D2/ontologies -owl
+    $CONVERT owl --cat $D1/ontologies/$CATALOG --output $D2/ontologies --text --clear
 }
 
 convert_to_owl() {
-    mkdir $D3/ontologies
-    $CONVERT -- -cat $D2/ontologies/$CATALOG -d $D3/ontologies -text
+    $CONVERT text --cat $D2/ontologies/$CATALOG --output $D3/ontologies --owl --clear
 }
 
 analyze_converted_owl() {
