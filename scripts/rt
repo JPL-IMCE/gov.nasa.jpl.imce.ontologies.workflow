@@ -1,0 +1,99 @@
+#!/bin/bash
+
+ROOT=/tmp/conversion-test
+D1=$ROOT/1-master
+D2=$ROOT/2-oml
+D3=$ROOT/3-owl
+
+CATALOG=oml.catalog.xml
+CENSUS="ruby $HOME/git/gov.nasa.jpl.imce.ontologies.tools/tools/audit-census"
+CONVERT=$HOME/Downloads/OMLConverters/bin/omlConverter
+SOURCE=$HOME/git/gov.nasa.jpl.imce.ontologies.public/ontologies
+ONTOLOGIES=$PWD/../target/ontologies
+ARTIFACTS=$PWD/../target/workflow/artifacts
+TESTS=$PWD/../target/workflow/tests
+TOCSV=$HOME/bin/junit2csv
+
+stages='0 1 2 3 4 5'
+while [ $# -ge 1 ]
+do
+    case $1 in
+	--stages|-s) stages=$2; shift; shift;;
+	*) echo "invalid argument $1" 1>&2; exit 1;;
+    esac
+done
+
+mkdir() {
+    rm -rf $1
+    env mkdir -p $1
+}
+
+run() {
+    make clean
+    make bootstrap
+    make validation-dependencies
+    make validate-groups
+    tests=$(find $TESTS -name 'validate-*-group.xml')
+    for i in $tests
+    do
+	dn=$(dirname $i)
+	bn=$(basename $i .xml)
+	$CENSUS $i > $dn/$bn.census
+	$TOCSV $i > $dn/$bn.csv
+    done
+    $CENSUS $tests > $TESTS/all.census
+}
+
+initialize() {
+    mkdir $ROOT
+    source env.sh
+}
+
+analyze_original_owl () {
+    mkdir $D1
+    rsync -av $SOURCE $D1
+    rm -f $ONTOLOGIES
+    ln -s $D1/ontologies $ONTOLOGIES
+    run
+    rsync -av $TESTS $D1
+    rsync -av $ARTIFACTS $D1
+}
+
+convert_to_oml() {
+    $CONVERT owl --cat $D1/ontologies/$CATALOG --output $D2/ontologies --text --clear
+}
+
+convert_to_owl() {
+    $CONVERT text --cat $D2/ontologies/$CATALOG --output $D3/ontologies --owl --clear
+}
+
+analyze_converted_owl() {
+    rm -f $ONTOLOGIES
+    ln -s $D3/ontologies $ONTOLOGIES
+    rsync -av $D1/ontologies/purl.org $D3/ontologies
+    run
+    rsync -av $TESTS $D3
+    rsync -av $ARTIFACTS $D3
+    compare
+}
+
+compare() {
+    censuses=$(cd $D3; find . -name '*.census')
+    for i in $censuses
+    do
+        diff -y $D1/$i $D3/$i > $D3/$i.compare
+    done
+}
+
+for stage in $stages
+do
+    case $stage in
+	0) initialize;;
+	1) analyze_original_owl;;
+	2) convert_to_oml;;
+	3) convert_to_owl;;
+	4) analyze_converted_owl;;
+	5) compare;;
+	*) echo "bad stage $stage" 1>&2; exit 1;;
+   esac
+done

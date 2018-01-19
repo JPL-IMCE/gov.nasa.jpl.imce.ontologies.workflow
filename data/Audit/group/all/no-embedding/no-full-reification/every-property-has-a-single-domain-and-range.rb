@@ -51,6 +51,7 @@ query %q{
     bind(?at_least_one_domain && ?at_most_one_domain && !isBlank(?domain1) as ?non_blank_domain)
     bind(?at_least_one_range && ?at_most_one_range && !isBlank(?range1) as ?non_blank_range)
     
+    filter(!regex(str(?property), "http://imce\\\\.jpl\\\\.nasa\\\\.gov/backbone/.*#"))
   }
   order by ?property
 }

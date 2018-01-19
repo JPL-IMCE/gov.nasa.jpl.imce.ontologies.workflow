@@ -16,9 +16,7 @@ name 'every class embedded in UML'
 
 query %q{
 
-  <%= @namespace_defs %>
-
-  select distinct ?klass ?audit_case_ok
+  <%= @namespace_defs %>  select distinct ?klass ?audit_case_ok
   
   <%= @from_clauses_by_group['named'] %>
   <%= @from_named_clauses_by_group['named'] %>

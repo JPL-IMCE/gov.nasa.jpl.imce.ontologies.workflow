@@ -4,3 +4,7 @@ target
 **/local.*
 **/*.log
 **/#*#
+**/*~
+**/*.census
+**/*.csv
+**/metastore_db

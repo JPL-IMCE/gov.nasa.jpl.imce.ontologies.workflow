@@ -21,10 +21,12 @@ query %q{
   select distinct ?prop1 ?prop2 ?audit_case_ok
   
   <%= @from_clauses_by_group['named'] %>
+  <%= @from_clauses_by_group_by_type['named']['PropertyEntailments'] %>
   
   where {
     
     ?prop1 owl:inverseOf ?prop2 .
+
     ?prop1 rdfs:domain ?prop1_d .
     ?prop1 rdfs:range ?prop1_r .
     ?prop2 rdfs:domain ?prop2_d .

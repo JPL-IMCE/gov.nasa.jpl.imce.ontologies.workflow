@@ -150,8 +150,8 @@ query %q{
     bind((!bound(?oprop_domain) && !bound(?srcprop_range)) || (bound(?oprop_domain) && bound(?srcprop_range) && ?oprop_domain = ?srcprop_range) as ?srcprop_range_ok)
     bind((!bound(?oprop_range)  && !bound(?trgprop_range)) || (bound(?oprop_range)  && bound(?trgprop_range) && ?oprop_range  = ?trgprop_range) as ?trgprop_range_ok)
     
-    bind(?oprop_func = ?srcprop_invfunc as ?func_ok)
-    bind(?oprop_invfunc = ?trgprop_invfunc as ?invfunc_ok)
+    bind((!?srcprop_exists || (?oprop_func = ?srcprop_invfunc)) as ?func_ok)
+    bind((!?trgprop_exists || (?oprop_invfunc = ?trgprop_invfunc)) as ?invfunc_ok)
     
     bind(bound(?oprop_domain) as ?domain_mapped)
     bind(bound(?oprop_range) as ?range_mapped)
@@ -174,6 +174,8 @@ prologue do
     :relclass_exists => 'no reified object property class',
     :srcprop_exists => 'no source property',
     :trgprop_exists => 'no target property',
+    :srcprop_range_ok => 'property domain and source property range inconsistent',
+    :trgprop_range_ok => 'property range and target property range inconsistent',
     :func_ok => 'property functional and source property inverse functional inconsistent',
     :invfunc_ok => 'property inverse functional and target property inverse functional inconsistent',
   }
@@ -189,6 +191,7 @@ end
 predicate do |r|
   msgs = @rules.inject([]) do |memo, kv|
     method, msg = *kv
+    raise "no binding for #{method} in result" unless r.contains(method)
     memo << msg + '.' unless r.send(method).true?
     memo
   end
