@@ -255,7 +255,7 @@ end
 
 # scenario
 
-include_imce_scenario_group = false
+include_imce_scenario_group = true
 if include_imce_scenario_group && include_imce_behavior_group
   path = 'imce.jpl.nasa.gov/foundation/scenario'
   stem = 'scenario'
@@ -409,6 +409,7 @@ imce_project_bundle_groups = [
 	imce_project_group,
 	imce_fse_group,
 	imce_behavior_group,
+	imce_scenario_group,
 	imce_fault_management_group,
 	imce_vandv_group ]
 if include_imce_project_bundle
