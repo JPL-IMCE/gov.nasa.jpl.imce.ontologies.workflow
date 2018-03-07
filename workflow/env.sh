@@ -60,7 +60,7 @@ export PARALLEL_MAKE_OPTS="-j8 -l16"
 JENA_DATASET_NAME="imce-ontologies"
 
 if [ $# -gt 0 ]; then
-  $JENA_DATASET_NAME="$1"
+  JENA_DATASET_NAME="$1"
 fi
 
 export JENA_DATASET=$JENA_DATASET_NAME
@@ -70,7 +70,7 @@ export JENA_HOST="localhost"
 JENA_PORT_VALUE="8898"
 
 if [ $# -gt 1 ]; then
-  $JENA_PORT_VALUE="$2"
+  JENA_PORT_VALUE="$2"
 fi
 
 export JENA_PORT=$JENA_PORT_VALUE
