@@ -87,10 +87,10 @@ pipeline {
 			steps {
 				echo "Validating ontologies and loading into Fuseki..."
 
-				sh "cd workflow; source ./env.sh testCommit 3030; /usr/bin/make validate-xml"
-				sh "cd workflow; source ./env.sh testCommit 3030; /usr/bin/make validate-owl"
-				sh "cd workflow; source ./env.sh testCommit 3030; /usr/bin/make validate-groups"
-				sh "cd workflow; source ./env.sh testCommit 3030; /usr/bin/make validate-bundles"
+				sh "cd workflow; source ./env.sh 'testCommit' '3030'; /usr/bin/make validate-xml"
+				sh "cd workflow; source ./env.sh 'testCommit' '3030'; /usr/bin/make validate-owl"
+				sh "cd workflow; source ./env.sh 'testCommit' '3030'; /usr/bin/make validate-groups"
+				sh "cd workflow; source ./env.sh 'testCommit' '3030'; /usr/bin/make validate-bundles"
 				// run makefile command, same for others below
 			}
 		}
