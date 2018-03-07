@@ -21,8 +21,8 @@ pipeline {
 		string(name: 'BUILD_DIGESTS', defaultValue: 'TRUE', description: 'Whether or not to build digests. This may be forced if not done previously before other, dependent steps (i.e., profile generation).')
 		string(name: 'BUILD_PROFILES', defaultValue: 'TRUE', description: 'Whether or not to generate profiles and build the profile resource.')
 		string(name: 'OML_REPO', defaultValue: 'undefined', description: 'Repository where OML data to be converted is stored.')
-		string(name: 'FUSEKI_DATASET_NAME' defaultValue: 'imce-ontologies', description: 'Name of the Fuseki dataset to be used.')
-		string(name: 'FUSEKI_PORT_NUMBER' defaultValue: '8898', description: 'Port number of the Fuseki database.')
+		string(name: 'FUSEKI_DATASET_NAME', defaultValue: 'imce-ontologies', description: 'Name of the Fuseki dataset to be used.')
+		string(name: 'FUSEKI_PORT_NUMBER', defaultValue: '8898', description: 'Port number of the Fuseki database.')
 	}
 
 	environment {
@@ -104,7 +104,7 @@ pipeline {
 			steps {
 				echo "Generating digests..."
 
-				sh "cd workflow; source ./env.sh; /usr/bin/make digests"
+				sh "cd workflow; source ./env.sh 'params.FUSEKI_DATASET_NAME' 'params.FUSEKI_PORT_NUMBER'; /usr/bin/make digests"
 			}
 		}
 
@@ -146,7 +146,7 @@ pipeline {
 				 */
 				//sh ' || true'
 				sh "sbt $SBT_OPTIONS -Dproject.version=${params.VERSION_PROFILES} setupProfileGenerator"
-				sh "cd workflow; source ./env.sh; export DISPLAY=`sed -n 's/^New.*\\(:[0-9][0-9]*\\)/\\1/p' $VNC_OUT`;/usr/bin/make profiles"
+				sh "cd workflow; source ./env.sh 'params.FUSEKI_DATASET_NAME' 'params.FUSEKI_PORT_NUMBER'; export DISPLAY=`sed -n 's/^New.*\\(:[0-9][0-9]*\\)/\\1/p' $VNC_OUT`;/usr/bin/make profiles"
 			}
 
     	}
