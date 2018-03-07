@@ -76,8 +76,8 @@ pipeline {
 			steps {
 				echo "Bootstrapping builds..."
 
-				sh "cd workflow; source ./env.sh 'params.FUSEKI_DATASET_NAME' 'params.FUSEKI_PORT_NUMBER'; /usr/bin/make bootstrap"
-				sh "cd workflow; source ./env.sh 'params.FUSEKI_DATASET_NAME' 'params.FUSEKI_PORT_NUMBER'; /usr/bin/make validation-dependencies"
+				sh "cd workflow; source ./env.sh ${params.FUSEKI_DATASET_NAME} ${params.FUSEKI_PORT_NUMBER}; /usr/bin/make bootstrap"
+				sh "cd workflow; source ./env.sh ${params.FUSEKI_DATASET_NAME} ${params.FUSEKI_PORT_NUMBER}; /usr/bin/make validation-dependencies"
 				// run makefile command, same for others below
 			}
 		}
@@ -89,10 +89,10 @@ pipeline {
 			steps {
 				echo "Validating ontologies and loading into Fuseki..."
 
-				sh "cd workflow; source ./env.sh 'params.FUSEKI_DATASET_NAME' 'params.FUSEKI_PORT_NUMBER'; /usr/bin/make validate-xml"
-				sh "cd workflow; source ./env.sh 'params.FUSEKI_DATASET_NAME' 'params.FUSEKI_PORT_NUMBER'; /usr/bin/make validate-owl"
-				sh "cd workflow; source ./env.sh 'params.FUSEKI_DATASET_NAME' 'params.FUSEKI_PORT_NUMBER'; /usr/bin/make validate-groups"
-				sh "cd workflow; source ./env.sh 'params.FUSEKI_DATASET_NAME' 'params.FUSEKI_PORT_NUMBER'; /usr/bin/make validate-bundles"
+				sh "cd workflow; source ./env.sh ${params.FUSEKI_DATASET_NAME} ${params.FUSEKI_PORT_NUMBER}; /usr/bin/make validate-xml"
+				sh "cd workflow; source ./env.sh ${params.FUSEKI_DATASET_NAME} ${params.FUSEKI_PORT_NUMBER}; /usr/bin/make validate-owl"
+				sh "cd workflow; source ./env.sh ${params.FUSEKI_DATASET_NAME} ${params.FUSEKI_PORT_NUMBER}; /usr/bin/make validate-groups"
+				sh "cd workflow; source ./env.sh ${params.FUSEKI_DATASET_NAME} ${params.FUSEKI_PORT_NUMBER}; /usr/bin/make validate-bundles"
 				// run makefile command, same for others below
 			}
 		}
@@ -104,7 +104,7 @@ pipeline {
 			steps {
 				echo "Generating digests..."
 
-				sh "cd workflow; source ./env.sh 'params.FUSEKI_DATASET_NAME' 'params.FUSEKI_PORT_NUMBER'; /usr/bin/make digests"
+				sh "cd workflow; source ./env.sh ${params.FUSEKI_DATASET_NAME} ${params.FUSEKI_PORT_NUMBER}; /usr/bin/make digests"
 			}
 		}
 
@@ -146,7 +146,7 @@ pipeline {
 				 */
 				//sh ' || true'
 				sh "sbt $SBT_OPTIONS -Dproject.version=${params.VERSION_PROFILES} setupProfileGenerator"
-				sh "cd workflow; source ./env.sh 'params.FUSEKI_DATASET_NAME' 'params.FUSEKI_PORT_NUMBER'; export DISPLAY=`sed -n 's/^New.*\\(:[0-9][0-9]*\\)/\\1/p' $VNC_OUT`;/usr/bin/make profiles"
+				sh "cd workflow; source ./env.sh ${params.FUSEKI_DATASET_NAME} ${params.FUSEKI_PORT_NUMBER}; export DISPLAY=`sed -n 's/^New.*\\(:[0-9][0-9]*\\)/\\1/p' $VNC_OUT`;/usr/bin/make profiles"
 			}
 
     	}
