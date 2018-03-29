@@ -13,11 +13,8 @@
 tmpfile = $(dir $1).$(notdir $1)
 today := $(shell date +%Y/%m/%d)
 
-BACKBONE_DISJOINTS ?= Entity ReifiedObjectProperty ReifiedStructuredDataProperty StructuredDatatype
-BACKBONE_PREFIX ?= http://imce.jpl.nasa.gov/backbone/
-
 CI_REVISION_NUMBER ?= [unknown]
-CLOSE_BUNDLE ?= $(JRUBY_CMD) $(TOOLS)/tools/close-bundle
+CLOSE_BUNDLE ?= $(JRUBY_CMD) $(TOOLS)/tools/close-tbox-bundle
 CLOSE_BUNDLE_OPTS ?= 
 CP ?= cp -p
 
@@ -33,9 +30,6 @@ ENTAIL_OPTS =
 
 EXTRACT_JENA ?= $(JRUBY_CMD) $(TOOLS)/tools/extract-jena
 EXTRACT_JENA_OPTS ?= --imports-file $(IMPORTS_GRAPH_FILE) --prefix-file $(PREFIX_FILE)
-
-FORM_IMPORTS_CLOSURE ?= $(JRUBY_CMD) $(TOOLS)/tools/form-imports-closure
-FORM_IMPORTS_CLOSURE_OPTS ?= 
 
 FUSEKI_S_DELETE ?= $(FUSEKI_BIN)/s-delete
 FUSEKI_S_GET ?= $(FUSEKI_BIN)/s-get
@@ -406,10 +400,7 @@ imce_project_bundle_groups = [
 	imce_mission_group,
 	imce_analysis_group,
 	imce_project_group,
-	imce_fse_group,
-	imce_behavior_group,
-	imce_fault_management_group,
-	imce_vandv_group ]
+	]
 if include_imce_project_bundle
   imce_project_bundle = ImceOntologyBundle.new('imce.jpl.nasa.gov/foundation/project', 'project', 'project', ONTOLOGY_DIGEST_EXTENSION)
   imce_project_bundle.owl2_mof2_group = imce_owl2_mof2_group
@@ -417,6 +408,21 @@ if include_imce_project_bundle
     imce_project_bundle.bundles(group)
   end
   imce_project_bundle.imports(omg_metrology_bundle)
+end
+
+# imce fse
+
+include_imce_fse_bundle = true
+imce_fse_bundle_groups = [
+	imce_fse_group,
+	]
+if include_imce_fse_bundle
+  imce_fse_bundle = ImceOntologyBundle.new('imce.jpl.nasa.gov/discipline/fse', 'fse', 'fse', ONTOLOGY_DIGEST_EXTENSION)
+  imce_fse_bundle.owl2_mof2_group = imce_owl2_mof2_group
+  imce_fse_bundle_groups.each do |group|
+    imce_fse_bundle.bundles(group)
+  end
+  imce_fse_bundle.imports(imce_project_bundle)
 end
 
 # imce mars 2020
@@ -920,8 +926,7 @@ define do_closure
   @$(CLOSE_BUNDLE) $(CLOSE_BUNDLE_OPTS) \
     --namespace '$(3) => $(2)' \
     --namespace '$(5) => $(4)' \
-    --name $(1) --uri $(2) --backbone-disjoints "$(BACKBONE_DISJOINTS)" \
-    --backbone-prefix $(BACKBONE_PREFIX) \
+    --name $(1) --uri $(2) \
     $(6) \
     $(7) > $(call tmpfile,$@) && mv $(call tmpfile,$@) $@
 endef

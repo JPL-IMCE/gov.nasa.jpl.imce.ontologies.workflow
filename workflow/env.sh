@@ -41,6 +41,7 @@ export RUBYLIB="$TOOLS/lib/Application":\
 "$TOOLS/lib/Makefile":\
 "$TOOLS/lib/OWLAPI":\
 "$TOOLS/lib/OntologyBundles":\
+"$TOOLS/lib/BundleClosure":\
 "$TOOLS/lib/Pellet":\
 "$TOOLS/lib/ruby-jena":\
 "$TOOLS/lib/ruby-owlapi":\
