@@ -15,7 +15,7 @@ today := $(shell date +%Y/%m/%d)
 
 CI_REVISION_NUMBER ?= [unknown]
 CLOSE_BUNDLE ?= $(JRUBY_CMD) $(TOOLS)/tools/close-tbox-bundle
-CLOSE_BUNDLE_OPTS ?= --debug
+CLOSE_BUNDLE_OPTS ?= 
 CP ?= cp -p
 
 DEPENDENCIES ?= $(JRUBY_CMD) $(TOOLS)/tools/dependencies $(DEPENDENCIES_OPTS)
