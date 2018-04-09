@@ -122,7 +122,7 @@ oml_parts << OntologyPart.new('imce.jpl.nasa.gov/oml', 'oml')
 
 # metrology
 
-include_omg_metrology_group = true
+include_omg_metrology_group = false
 if include_omg_metrology_group
 
   path = 'imce.jpl.nasa.gov/www.omg.org/spec/SysML/20140311'
@@ -177,7 +177,7 @@ OntologyPart.new('imce.jpl.nasa.gov/foundation/annotation', 'annotation', 'annot
 
 # owl2-mof2
 
-include_imce_owl2_mof2_group = true
+include_imce_owl2_mof2_group = false
 if include_imce_owl2_mof2_group
   path = 'imce.jpl.nasa.gov/foundation/owl2-mof2'
   stem = 'owl2-mof2'
@@ -195,7 +195,7 @@ if include_imce_base_group
   imce_base_group = ImceOntologyGroup.new(path, stem)
   imce_base_group.depends_on(omg_metrology_group)
   imce_base_group << OntologyPart.new(path, stem)
-  imce_base_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_base_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # time
@@ -207,7 +207,7 @@ if include_imce_time_group && include_imce_base_group
   imce_time_group = ImceOntologyGroup.new(path, stem)
   imce_time_group.depends_on(imce_base_group)
   imce_time_group << OntologyPart.new(path, stem)
-  imce_time_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_time_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # mission
@@ -219,7 +219,7 @@ if include_imce_mission_group && include_imce_base_group
   imce_mission_group = ImceOntologyGroup.new(path, stem)
   imce_mission_group.depends_on(imce_base_group)
   imce_mission_group << OntologyPart.new(path, stem)
-  imce_mission_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_mission_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # analysis
@@ -231,7 +231,7 @@ if include_imce_analysis_group && include_imce_mission_group
   imce_analysis_group = ImceOntologyGroup.new(path, stem)
   imce_analysis_group.depends_on(imce_mission_group)
   imce_analysis_group << OntologyPart.new(path, stem)
-  imce_analysis_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_analysis_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # behavior
@@ -243,7 +243,7 @@ if include_imce_behavior_group && include_imce_analysis_group
   imce_behavior_group = ImceOntologyGroup.new(path, stem)
   imce_behavior_group.depends_on(imce_analysis_group)
   imce_behavior_group << OntologyPart.new(path, stem)
-  imce_behavior_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_behavior_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # scenario
@@ -255,7 +255,7 @@ if include_imce_scenario_group && include_imce_behavior_group
   imce_scenario_group = ImceOntologyGroup.new(path, stem)
   imce_scenario_group.depends_on(imce_behavior_group)
   imce_scenario_group << OntologyPart.new(path, stem)
-  imce_scenario_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_scenario_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # project
@@ -267,7 +267,7 @@ if include_imce_project_group && include_imce_behavior_group
   imce_project_group = ImceOntologyGroup.new(path, stem)
   imce_project_group.depends_on(imce_behavior_group)
   imce_project_group << OntologyPart.new(path, stem)
-  imce_project_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_project_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 #
@@ -283,7 +283,7 @@ if include_imce_fse_group && include_imce_mission_group
   imce_fse_group = ImceOntologyGroup.new(path, stem)
   imce_fse_group.depends_on(imce_mission_group)
   imce_fse_group << OntologyPart.new(path, stem)
-  imce_fse_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_fse_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # fault management
@@ -295,7 +295,7 @@ if include_imce_fault_management_group && include_imce_behavior_group
   imce_fault_management_group = ImceOntologyGroup.new(path, stem)
   imce_fault_management_group.depends_on(imce_behavior_group)
   imce_fault_management_group << OntologyPart.new(path, stem)
-  imce_fault_management_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_fault_management_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # verification and validation
@@ -307,7 +307,7 @@ if include_imce_vandv_group && include_imce_project_group
   imce_vandv_group = ImceOntologyGroup.new(path, stem)
   imce_vandv_group.depends_on(imce_project_group)
   imce_vandv_group << OntologyPart.new(path, stem)
-  imce_vandv_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_vandv_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # state analysis
@@ -319,7 +319,7 @@ if include_imce_state_analysis_group && include_imce_project_group
   imce_state_analysis_group = ImceOntologyGroup.new(path, stem)
   imce_state_analysis_group.depends_on(imce_project_group)
   imce_state_analysis_group << OntologyPart.new(path, stem)
-  imce_state_analysis_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_state_analysis_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # risk
@@ -331,7 +331,7 @@ if include_imce_risk_group && include_imce_project_group
   imce_risk_group = ImceOntologyGroup.new(path, stem)
   imce_risk_group.depends_on(imce_project_group)
   imce_risk_group << OntologyPart.new(path, stem)
-  imce_risk_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_risk_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 # mechanical
@@ -343,7 +343,7 @@ if include_imce_mechanical_group && include_imce_project_group
   imce_mechanical_group = ImceOntologyGroup.new(path, stem)
   imce_mechanical_group.depends_on(imce_project_group)
   imce_mechanical_group << OntologyPart.new(path, stem)
-  imce_mechanical_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_mechanical_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 #
@@ -359,7 +359,7 @@ if include_imce_mars_2020_group && include_imce_analysis_group
   imce_mars_2020_group = ImceOntologyGroup.new(path, stem)
   imce_mars_2020_group.depends_on(imce_analysis_group)
   imce_mars_2020_group << OntologyPart.new(path, stem)
-  imce_mars_2020_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_mars_2020_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 #
@@ -373,7 +373,7 @@ if include_imce_architecture_framework_group && include_imce_project_group
   imce_architecture_framework_group = ImceOntologyGroup.new(path, stem)
   imce_architecture_framework_group.depends_on(imce_project_group)
   imce_architecture_framework_group << OntologyPart.new(path, stem)
-  imce_architecture_framework_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
+  #imce_architecture_framework_group << OntologyEmbeddingPart.new(path, stem + EMBEDDING_SUFFIX)
 end
 
 #
@@ -382,7 +382,7 @@ end
 
 # omg metrology
 
-include_omg_metrology_bundle = true
+include_omg_metrology_bundle = false
 if include_omg_metrology_bundle
   omg_metrology_bundle = OmgOntologyBundle.new('imce.jpl.nasa.gov/www.omg.org/spec/SysML/20140311', 'Metrology', 'Metrology', ONTOLOGY_DIGEST_EXTENSION)
   omg_metrology_bundle.owl2_mof2_group = imce_owl2_mof2_group
@@ -403,11 +403,11 @@ imce_project_bundle_groups = [
 	]
 if include_imce_project_bundle
   imce_project_bundle = ImceOntologyBundle.new('imce.jpl.nasa.gov/foundation/project', 'project', 'project', ONTOLOGY_DIGEST_EXTENSION)
-  imce_project_bundle.owl2_mof2_group = imce_owl2_mof2_group
+  #imce_project_bundle.owl2_mof2_group = imce_owl2_mof2_group
   imce_project_bundle_groups.each do |group|
     imce_project_bundle.bundles(group)
   end
-  imce_project_bundle.imports(omg_metrology_bundle)
+  #imce_project_bundle.imports(omg_metrology_bundle)
 end
 
 # imce fse
@@ -418,7 +418,7 @@ imce_fse_bundle_groups = [
 	]
 if include_imce_fse_bundle
   imce_fse_bundle = ImceOntologyBundle.new('imce.jpl.nasa.gov/discipline/fse', 'fse', 'fse', ONTOLOGY_DIGEST_EXTENSION)
-  imce_fse_bundle.owl2_mof2_group = imce_owl2_mof2_group
+  #imce_fse_bundle.owl2_mof2_group = imce_owl2_mof2_group
   imce_fse_bundle_groups.each do |group|
     imce_fse_bundle.bundles(group)
   end
