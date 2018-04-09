@@ -44,8 +44,8 @@ $(WORKFLOW)/Makefile: $(WORKFLOW_SOURCES)/Makefile.erb $(WORKFLOW)/logging.prope
 	(cd $(WORKFLOW); $(JRUBY_CMD) $(MAKE_MAKEFILE) $< > $@.tmp) && mv $@.tmp $@
 
 $(WORKFLOW)/.symlinks:
-    echo "# ONTOLOGIES=$(ONTOLOGIES)"
-    ls -l $(ONTOLOGIES)
+	echo "# ONTOLOGIES=$(ONTOLOGIES)"
+	ls -l $(ONTOLOGIES)
 	ln -sv $(ONTOLOGIES)/* $(WORKFLOW)
 	touch $(WORKFLOW)/.symlinks
 
