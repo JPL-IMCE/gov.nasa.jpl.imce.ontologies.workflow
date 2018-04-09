@@ -44,7 +44,7 @@ $(WORKFLOW)/Makefile: $(WORKFLOW_SOURCES)/Makefile.erb $(WORKFLOW)/logging.prope
 	(cd $(WORKFLOW); $(JRUBY_CMD) $(MAKE_MAKEFILE) $< > $@.tmp) && mv $@.tmp $@
 
 $(WORKFLOW)/.symlinks:
-	ln -s $(ONTOLOGIES)/* $(WORKFLOW)
+	ln -sv $(ONTOLOGIES)/* $(WORKFLOW)
 	touch $(WORKFLOW)/.symlinks
 
 catalogs:
