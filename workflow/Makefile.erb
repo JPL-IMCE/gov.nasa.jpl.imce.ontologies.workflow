@@ -14,10 +14,13 @@ tmpfile = $(dir $1).$(notdir $1)
 today := $(shell date +%Y/%m/%d)
 
 BACKBONE_IRI ?= http://imce.jpl.nasa.gov/backbone/
+BACKBONE_ABSTRACT ?= Aspect
+BACKBONE_CONCRETE ?= Concept Entity ReifiedObjectProperty ReifiedStructuredDataProperty StructuredDatatype
 
 CI_REVISION_NUMBER ?= [unknown]
 CLOSE_BUNDLE ?= $(JRUBY_CMD) $(TOOLS)/tools/close-tbox-bundle
-CLOSE_BUNDLE_OPTS ?= --excise '$(BACKBONE_IRI)'
+CLOSE_BUNDLE_OPTS ?= --excise '$(BACKBONE_IRI)' --backbone_iri '$(BACKBONE_IRI)' \
+		     --abstract '$(BACKBONE_ABSTRACT)' --concrete '$(BACKBONE_CONCRETE)'
 CP ?= cp -p
 
 DEPENDENCIES ?= $(JRUBY_CMD) $(TOOLS)/tools/dependencies $(DEPENDENCIES_OPTS)
