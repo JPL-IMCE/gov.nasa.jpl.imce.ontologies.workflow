@@ -50,7 +50,7 @@ IMPORTS_GRAPH_FILE ?= artifacts/imports-graph.yaml
 IMPORTS_PRODUCTION_SENTINEL ?= .production/$(IMPORTS_GRAPH_FILE)
 
 JRUBY ?= jruby
-JRUBY_CMD ?= $(JRUBY) --headless -J-Xmx2G
+JRUBY_CMD ?= $(JRUBY) --headless -J-Xmx2048m
 
 LOAD_PREFIXES ?= $(JRUBY_CMD) $(TOOLS)/tools/load-prefixes-jena
 LOAD_PREFIXES_OPTS ?= --host $(JENA_HOST) --port $(JENA_PORT) --dataset $(JENA_DATASET) \
