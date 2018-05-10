@@ -19,7 +19,7 @@ BACKBONE_CONCRETE ?= Concept Entity ReifiedObjectProperty ReifiedStructuredDataP
 
 CI_REVISION_NUMBER ?= [unknown]
 CLOSE_BUNDLE ?= $(JRUBY_CMD) $(TOOLS)/tools/close-tbox-bundle
-CLOSE_BUNDLE_OPTS ?= --excise '$(BACKBONE_IRI)' --backbone_iri '$(BACKBONE_IRI)' \
+CLOSE_BUNDLE_OPTS ?= --debug --excise '$(BACKBONE_IRI)' --backbone_iri '$(BACKBONE_IRI)' \
 		     --abstract '$(BACKBONE_ABSTRACT)' --concrete '$(BACKBONE_CONCRETE)'
 CP ?= cp -p
 
@@ -928,7 +928,7 @@ endef
 define do_closure
   @echo closure artifact '->' $@
   @mkdir -p $(dir $@)
-  @$(CLOSE_BUNDLE) $(CLOSE_BUNDLE_OPTS) \
+  $(CLOSE_BUNDLE) $(CLOSE_BUNDLE_OPTS) \
     --namespace '$(3) => $(2)' \
     --namespace '$(5) => $(4)' \
     --name $(1) --uri $(2) \
