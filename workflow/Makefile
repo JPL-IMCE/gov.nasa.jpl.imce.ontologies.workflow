@@ -44,7 +44,8 @@ $(WORKFLOW)/Makefile: $(WORKFLOW_SOURCES)/Makefile.erb $(WORKFLOW)/logging.prope
 	(cd $(WORKFLOW); $(JRUBY_CMD) $(MAKE_MAKEFILE) $< > $@.tmp) && mv $@.tmp $@
 
 $(WORKFLOW)/.symlinks:
-	ln -s $(ONTOLOGIES)/* $(WORKFLOW)
+	pwd
+	for d in $$(find -L $(ONTOLOGIES) -depth 1 -type d); do ln -s $$d $(WORKFLOW)/$$(basename $$d); done
 	touch $(WORKFLOW)/.symlinks
 
 catalogs:
@@ -70,6 +71,9 @@ validate-bundles:
 
 load-production:
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} load-production)
+
+closure-artifacts:
+	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} closure-artifacts)
 
 digests:
 	(cd $(WORKFLOW); nice make ${PARALLEL_MAKE_OPTS} digests)

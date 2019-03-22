@@ -1,4 +1,4 @@
-#
+
 #    $HeadURL$
 #
 #    $LastChangedRevision$
@@ -953,7 +953,8 @@ endef
     bundle.imported_bundles.each do |ib|
       iri_args << ib.iri unless ib.type == 'omg'
     end
-    rule.cmds << "$(call do_closure,#{bundle.name},#{bundle.iri},#{bundle.abbrev},#{bundle.backbone_iri},#{bundle.backbone_abbrev},,#{iri_args.join(' ')})"
+    method = (bundle.type == 'omg') ? '--bypass-reduce-isolate' : '--bypass-reduce-isolate'
+    rule.cmds << "$(call do_closure,#{bundle.name},#{bundle.iri},#{bundle.abbrev},#{bundle.backbone_iri},#{bundle.backbone_abbrev},#{method},#{iri_args.join(' ')})"
     memo << rule.to_s
     memo
   end
