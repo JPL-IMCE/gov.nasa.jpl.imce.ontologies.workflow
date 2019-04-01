@@ -19,6 +19,8 @@ BACKBONE_CONCRETE ?= Concept Entity ReifiedObjectProperty ReifiedStructuredDataP
 
 CI_REVISION_NUMBER ?= [unknown]
 CLOSE_BUNDLE ?= $(JRUBY_CMD) $(TOOLS)/tools/close-tbox-bundle
+CLOSE_BUNDLE_IMCE_METHOD ?= --bypass-reduce-isolate
+CLOSE_BUNDLE_OMG_METHOD ?= --bypass-reduce-isolate
 CLOSE_BUNDLE_OPTS ?= --info --excise '$(BACKBONE_IRI)' --backbone_iri '$(BACKBONE_IRI)' \
 		     --abstract '$(BACKBONE_ABSTRACT)' --concrete '$(BACKBONE_CONCRETE)'
 CP ?= cp -p
@@ -953,7 +955,7 @@ endef
     bundle.imported_bundles.each do |ib|
       iri_args << ib.iri unless ib.type == 'omg'
     end
-    method = (bundle.type == 'omg') ? '--bypass-reduce-isolate' : '--bypass-reduce-isolate'
+    method = (bundle.type == 'omg') ? '$(CLOSE_BUNDLE_OMG_METHOD)' : '$(CLOSE_BUNDLE_IMCE_METHOD)'
     rule.cmds << "$(call do_closure,#{bundle.name},#{bundle.iri},#{bundle.abbrev},#{bundle.backbone_iri},#{bundle.backbone_abbrev},#{method},#{iri_args.join(' ')})"
     memo << rule.to_s
     memo
