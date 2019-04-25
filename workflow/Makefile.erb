@@ -21,7 +21,8 @@ CI_REVISION_NUMBER ?= [unknown]
 CLOSE_BUNDLE ?= $(JRUBY_CMD) $(TOOLS)/tools/close-tbox-bundle
 CLOSE_BUNDLE_IMCE_METHOD ?= --bypass-reduce-isolate
 CLOSE_BUNDLE_OMG_METHOD ?= --bypass-reduce-isolate
-CLOSE_BUNDLE_OPTS ?= --info --excise '$(BACKBONE_IRI)' --backbone_iri '$(BACKBONE_IRI)' \
+CLOSE_BUNDLE_IMPLEMENTATION ?=				# not --recursive
+CLOSE_BUNDLE_OPTS ?= --info $(CLOSE_BUNDLE_IMPLEMENTATION) --excise '$(BACKBONE_IRI)' --backbone_iri '$(BACKBONE_IRI)' \
 		     --abstract '$(BACKBONE_ABSTRACT)' --concrete '$(BACKBONE_CONCRETE)'
 CP ?= cp -p
 
