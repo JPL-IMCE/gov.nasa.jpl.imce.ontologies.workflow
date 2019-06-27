@@ -114,11 +114,22 @@ dc_parts = []
 dc_parts << OntologyPart.new('purl.org/dc/elements/1.1', '', 'dc', '/')
 
 #
+# ISO 80000 ONTOLOGIES
+#
+
+iso80k_parts = [
+	       OntologyPart.new('iso.org', 'iso-80000-2'),
+	       OntologyPart.new('iso.org', 'iso-80000-3'),
+	       OntologyPart.new('iso.org', 'iso-80000-4'),
+	       OntologyPart.new('iso.org', 'iso-80000-5'),
+	       OntologyPart.new('iso.org', 'iso-80000-6')
+	     ]
+	     
+#
 # IMCE OML ONTOLOGY
 #
 
 oml_parts = []
-
 oml_parts << OntologyPart.new('imce.jpl.nasa.gov/oml', 'oml')
 
 #
