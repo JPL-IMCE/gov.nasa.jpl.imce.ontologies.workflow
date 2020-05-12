@@ -117,6 +117,6 @@ sbt packageProfiles
 This will produce a MD-compatible resource / plugin in the "target" folder. Running `sbt publish` or `sbt publishSigned` will then upload this archive to bintray.
 
 ### Running Under CI
-For Jenkins, a pipeline script can be found in the root directory. This file is called `Jenkinsfile`. **Note:** this file is currently under development.
+For Jenkins, a pipeline script can be found in the root directory. This file is called `Jenkinsfile`. **Note:** this file is under development.
 
 To decrypt encrypted files automatically, use openssl as described in the scripts/travis-decode.sh file. Note that this requires setting an environment variable within the CI system (e.g., in Jenkins: "Manage Jenkins" > "Manage Nodes" > (node name) > "Configure"; then set the environment variable ENCRYPTION_PASSWORD).
